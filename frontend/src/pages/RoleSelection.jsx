@@ -8,7 +8,11 @@ export default function RoleSelection({ onNavigate }) {
     e.preventDefault();
     if (selectedRole) {
       console.log('Selected role:', selectedRole);
-      // Handle role selection logic and navigation here
+      if (selectedRole === 'teacher') {
+        onNavigate('teacher-dashboard');
+      } else if (selectedRole === 'student') {
+        onNavigate('student-dashboard');
+      }
     }
   };
 
