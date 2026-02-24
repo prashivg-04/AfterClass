@@ -1,4 +1,8 @@
-function DashboardLayout({ children, role, onNavigate }) {
+import { useNavigate } from 'react-router-dom';
+
+function DashboardLayout({ children, role }) {
+  const navigate = useNavigate();
+
   return (
     <div className="min-h-screen bg-slate-50 flex">
       {/* Sidebar */}
@@ -7,7 +11,7 @@ function DashboardLayout({ children, role, onNavigate }) {
           <h1 className="text-2xl font-bold text-slate-900">AfterClass</h1>
           <p className="text-sm text-slate-600 mt-1">{role} Dashboard</p>
         </div>
-        
+
         <nav className="flex-1 p-4 space-y-2">
           <a href="#" className="flex items-center gap-3 px-4 py-3 text-slate-900 bg-slate-100 rounded-lg font-medium">
             <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -15,7 +19,7 @@ function DashboardLayout({ children, role, onNavigate }) {
             </svg>
             Dashboard
           </a>
-          
+
           {role === 'Teacher' && (
             <>
               <a href="#" className="flex items-center gap-3 px-4 py-3 text-slate-600 hover:bg-slate-50 rounded-lg">
@@ -38,7 +42,7 @@ function DashboardLayout({ children, role, onNavigate }) {
               </a>
             </>
           )}
-          
+
           {role === 'Student' && (
             <>
               <a href="#" className="flex items-center gap-3 px-4 py-3 text-slate-600 hover:bg-slate-50 rounded-lg">
@@ -62,10 +66,10 @@ function DashboardLayout({ children, role, onNavigate }) {
             </>
           )}
         </nav>
-        
+
         <div className="p-4 border-t border-slate-200">
-          <button 
-            onClick={() => onNavigate('home')}
+          <button
+            onClick={() => navigate('/')}
             className="w-full flex items-center gap-3 px-4 py-3 text-slate-600 hover:bg-slate-50 rounded-lg"
           >
             <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">

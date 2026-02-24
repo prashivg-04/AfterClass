@@ -1,7 +1,9 @@
 import { useState } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
 import AuthLayout from '../components/auth/AuthLayout';
 
-export default function Signup({ onNavigate }) {
+export default function Signup() {
+  const navigate = useNavigate();
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -11,7 +13,7 @@ export default function Signup({ onNavigate }) {
     // Handle signup logic here
     console.log('Signup:', { name, email, password });
     // Navigate to role selection after signup
-    onNavigate && onNavigate('role-selection');
+    navigate('/role-selection');
   };
 
   return (
@@ -72,13 +74,12 @@ export default function Signup({ onNavigate }) {
         <div className="text-center pt-2">
           <p className="text-sm text-gray-600">
             Already have an account?{' '}
-            <button
-              type="button"
-              onClick={() => onNavigate && onNavigate('login')}
+            <Link
+              to="/login"
               className="text-blue-600 hover:text-blue-700 font-medium hover:underline"
             >
               Log in
-            </button>
+            </Link>
           </p>
         </div>
       </form>

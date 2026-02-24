@@ -1,7 +1,9 @@
 import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import AuthLayout from '../components/auth/AuthLayout';
 
-export default function RoleSelection({ onNavigate }) {
+export default function RoleSelection() {
+  const navigate = useNavigate();
   const [selectedRole, setSelectedRole] = useState(null);
 
   const handleSubmit = (e) => {
@@ -9,9 +11,9 @@ export default function RoleSelection({ onNavigate }) {
     if (selectedRole) {
       console.log('Selected role:', selectedRole);
       if (selectedRole === 'teacher') {
-        onNavigate('teacher-dashboard');
+        navigate('/dashboard/teacher');
       } else if (selectedRole === 'student') {
-        onNavigate('student-dashboard');
+        navigate('/dashboard/student');
       }
     }
   };

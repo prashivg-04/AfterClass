@@ -1,7 +1,8 @@
 import { useState } from 'react';
+import { Link } from 'react-router-dom';
 import AuthLayout from '../components/auth/AuthLayout';
 
-export default function Login({ onNavigate }) {
+export default function Login() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
 
@@ -54,13 +55,12 @@ export default function Login({ onNavigate }) {
         <div className="text-center pt-2">
           <p className="text-sm text-gray-600">
             Don't have an account?{' '}
-            <button
-              type="button"
-              onClick={() => onNavigate && onNavigate('signup')}
+            <Link
+              to="/signup"
               className="text-blue-600 hover:text-blue-700 font-medium hover:underline"
             >
               Sign up
-            </button>
+            </Link>
           </p>
         </div>
       </form>

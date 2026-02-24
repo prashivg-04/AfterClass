@@ -1,8 +1,8 @@
 import DashboardLayout from '../components/dashboard/DashboardLayout';
 
-function StudentDashboard({ onNavigate }) {
+function StudentDashboard() {
   return (
-    <DashboardLayout role="Student" onNavigate={onNavigate}>
+    <DashboardLayout role="Student">
       <div className="space-y-6">
         {/* Stats Cards */}
         <div className="grid md:grid-cols-3 gap-6">

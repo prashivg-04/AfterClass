@@ -1,4 +1,6 @@
-function Home({ onNavigate }) {
+import { Link } from 'react-router-dom';
+
+function Home() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 flex items-center justify-center p-6">
       <div className="max-w-4xl w-full">
@@ -10,18 +12,18 @@ function Home({ onNavigate }) {
             Seamless learning continuity for teachers and students
           </p>
           <div className="flex gap-4 justify-center">
-            <button
-              onClick={() => onNavigate('login')}
+            <Link
+              to="/login"
               className="px-8 py-3 bg-slate-900 text-white rounded-lg font-medium hover:bg-slate-800 transition-colors shadow-lg"
             >
               Login
-            </button>
-            <button
-              onClick={() => onNavigate('signup')}
+            </Link>
+            <Link
+              to="/signup"
               className="px-8 py-3 bg-white text-slate-900 rounded-lg font-medium hover:bg-slate-50 transition-colors shadow-lg border border-slate-200"
             >
               Sign Up
-            </button>
+            </Link>
           </div>
         </div>
 

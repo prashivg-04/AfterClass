@@ -1,5 +1,4 @@
-import { useState } from 'react';
-import { supabase } from "./lib/supabase";
+import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import Home from './pages/Home';
 import Login from './pages/Login';
 import Signup from './pages/Signup';
@@ -8,23 +7,17 @@ import TeacherDashboard from './pages/TeacherDashboard';
 import StudentDashboard from './pages/StudentDashboard';
 
 function App() {
-  const [currentPage, setCurrentPage] = useState('home');
-
-  console.log("Supabase connected:", supabase);
-
-  const handleNavigate = (page) => {
-    setCurrentPage(page);
-  };
-
   return (
-    <>
-      {currentPage === 'home' && <Home onNavigate={handleNavigate} />}
-      {currentPage === 'login' && <Login onNavigate={handleNavigate} />}
-      {currentPage === 'signup' && <Signup onNavigate={handleNavigate} />}
-      {currentPage === 'role-selection' && <RoleSelection onNavigate={handleNavigate} />}
-      {currentPage === 'teacher-dashboard' && <TeacherDashboard onNavigate={handleNavigate} />}
-      {currentPage === 'student-dashboard' && <StudentDashboard onNavigate={handleNavigate} />}
-    </>
+    <BrowserRouter>
+      <Routes>
+        <Route path="/" element={<Home />} />
+        <Route path="/login" element={<Login />} />
+        <Route path="/signup" element={<Signup />} />
+        <Route path="/role-selection" element={<RoleSelection />} />
+        <Route path="/dashboard/teacher" element={<TeacherDashboard />} />
+        <Route path="/dashboard/student" element={<StudentDashboard />} />
+      </Routes>
+    </BrowserRouter>
   );
 }
 
