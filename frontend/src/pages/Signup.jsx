@@ -1,24 +1,55 @@
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import AuthLayout from '../components/auth/AuthLayout';
+import { supabase } from '../lib/supabase';
 
 export default function Signup() {
   const navigate = useNavigate();
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [error, setError] = useState('');
+  const [loading, setLoading] = useState(false);
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    // Handle signup logic here
-    console.log('Signup:', { name, email, password });
-    // Navigate to role selection after signup
-    navigate('/role-selection');
+    setError('');
+
+    if (password.length < 6) {
+      setError('Password must be at least 6 characters long.');
+      return;
+    }
+
+    setLoading(true);
+    try {
+      const { error: signUpError } = await supabase.auth.signUp({
+        email,
+        password,
+        options: {
+          data: {
+            full_name: name,
+          },
+        },
+      });
+
+      if (signUpError) throw signUpError;
+
+      navigate('/role-selection');
+    } catch (err) {
+      setError(err.message || 'An error occurred during signup.');
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
     <AuthLayout title="Create your account">
       <form onSubmit={handleSubmit} className="space-y-5">
+        {error && (
+          <div className="p-3 text-sm text-red-600 bg-red-50 border border-red-200 rounded-lg">
+            {error}
+          </div>
+        )}
         <div>
           <label htmlFor="name" className="block text-sm font-medium text-gray-700 mb-1.5">
             Full Name
@@ -66,9 +97,16 @@ export default function Signup() {
 
         <button
           type="submit"
-          className="w-full bg-blue-600 text-white py-2.5 px-4 rounded-lg font-medium hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-colors"
+          disabled={loading || !name || !email || !password || password.length < 6}
+          className={`
+            w-full py-2.5 px-4 rounded-lg font-medium transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2
+            ${loading || !name || !email || !password || password.length < 6
+              ? 'bg-blue-300 text-white cursor-not-allowed'
+              : 'bg-blue-600 text-white hover:bg-blue-700'
+            }
+          `}
         >
-          Continue
+          {loading ? 'Creating account...' : 'Continue'}
         </button>
 
         <div className="text-center pt-2">

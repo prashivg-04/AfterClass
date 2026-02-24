@@ -1,20 +1,89 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import AuthLayout from '../components/auth/AuthLayout';
+import { supabase } from '../lib/supabase';
 
 export default function RoleSelection() {
   const navigate = useNavigate();
   const [selectedRole, setSelectedRole] = useState(null);
+  const [error, setError] = useState(null);
+  const [submitting, setSubmitting] = useState(false);
+  const [loading, setLoading] = useState(true);
 
-  const handleSubmit = (e) => {
+  useEffect(() => {
+    // Check if user already has a role - redirect to dashboard if so
+    const checkExistingRole = async () => {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) {
+        navigate('/login');
+        return;
+      }
+
+      const { data: profile } = await supabase
+        .from('profiles')
+        .select('role')
+        .eq('id', session.user.id)
+        .maybeSingle();
+
+      if (profile?.role) {
+        if (profile.role === 'teacher') navigate('/dashboard/teacher');
+        else if (profile.role === 'student') navigate('/dashboard/student');
+        return;
+      }
+
+      setLoading(false);
+    };
+
+    checkExistingRole();
+  }, [navigate]);
+
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gray-50">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+      </div>
+    );
+  }
+
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    if (selectedRole) {
-      console.log('Selected role:', selectedRole);
+    setError(null);
+
+    if (!selectedRole) {
+      setError('Please select a role to continue.');
+      return;
+    }
+
+    setSubmitting(true);
+    try {
+      // First try to get the session
+      const { data: { session }, error: sessionError } = await supabase.auth.getSession();
+
+      if (sessionError || !session) {
+        throw new Error('No active session found. Please log in again.');
+      }
+
+      const user = session.user;
+      if (!user) throw new Error('Could not get user details. Please log in again.');
+
+      const { error: upsertError } = await supabase
+        .from('profiles')
+        .upsert({
+          id: user.id,
+          role: selectedRole,
+        });
+
+      if (upsertError) throw upsertError;
+
       if (selectedRole === 'teacher') {
         navigate('/dashboard/teacher');
       } else if (selectedRole === 'student') {
         navigate('/dashboard/student');
       }
+    } catch (err) {
+      setError(err.message || 'An error occurred while saving your role.');
+    } finally {
+      setSubmitting(false);
     }
   };
 
@@ -44,6 +113,11 @@ export default function RoleSelection() {
   return (
     <AuthLayout title="Choose your role" subtitle="Select how you'll be using AfterClass">
       <form onSubmit={handleSubmit} className="space-y-5">
+        {error && (
+          <div className="p-3 text-sm text-red-600 bg-red-50 border border-red-200 rounded-lg">
+            {error}
+          </div>
+        )}
         <div className="grid gap-4">
           {roles.map((role) => (
             <button
@@ -52,10 +126,9 @@ export default function RoleSelection() {
               onClick={() => setSelectedRole(role.id)}
               className={`
                 relative p-6 rounded-lg border-2 transition-all text-left
-                ${
-                  selectedRole === role.id
-                    ? 'border-blue-600 bg-blue-50'
-                    : 'border-gray-200 bg-white hover:border-gray-300 hover:bg-gray-50'
+                ${selectedRole === role.id
+                  ? 'border-blue-600 bg-blue-50'
+                  : 'border-gray-200 bg-white hover:border-gray-300 hover:bg-gray-50'
                 }
               `}
             >
@@ -75,10 +148,9 @@ export default function RoleSelection() {
                 <div
                   className={`
                     flex-shrink-0 w-5 h-5 rounded-full border-2 transition-all mt-1.5
-                    ${
-                      selectedRole === role.id
-                        ? 'border-blue-600 bg-blue-600'
-                        : 'border-gray-300 bg-white'
+                    ${selectedRole === role.id
+                      ? 'border-blue-600 bg-blue-600'
+                      : 'border-gray-300 bg-white'
                     }
                   `}
                 >
@@ -95,17 +167,16 @@ export default function RoleSelection() {
 
         <button
           type="submit"
-          disabled={!selectedRole}
+          disabled={!selectedRole || submitting}
           className={`
             w-full py-2.5 px-4 rounded-lg font-medium transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2
-            ${
-              selectedRole
-                ? 'bg-blue-600 text-white hover:bg-blue-700'
-                : 'bg-gray-200 text-gray-400 cursor-not-allowed'
+            ${selectedRole && !submitting
+              ? 'bg-blue-600 text-white hover:bg-blue-700'
+              : 'bg-gray-200 text-gray-400 cursor-not-allowed'
             }
           `}
         >
-          Continue
+          {submitting ? 'Saving...' : 'Continue'}
         </button>
       </form>
     </AuthLayout>
