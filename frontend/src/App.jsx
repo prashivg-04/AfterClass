@@ -1,4 +1,4 @@
-import { BrowserRouter, Routes, Route } from 'react-router-dom';
+import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { useEffect, useState } from 'react';
 import { supabase } from './lib/supabase';
 import Home from './pages/Home';
@@ -8,21 +8,18 @@ import RoleSelection from './pages/RoleSelection';
 import TeacherDashboard from './pages/TeacherDashboard';
 import StudentDashboard from './pages/StudentDashboard';
 
-function App() {
+function ProtectedRoute({ children }) {
   const [loading, setLoading] = useState(true);
+  const [session, setSession] = useState(null);
 
   useEffect(() => {
-    // Check active sessions and sets the user
-    supabase.auth.getSession().then(() => {
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      setSession(session);
       setLoading(false);
     });
 
-    // Listen for changes on auth state (log in, log out, etc.)
-    const {
-      data: { subscription },
-    } = supabase.auth.onAuthStateChange(() => {
-      // In a real app we might store session in context, 
-      // but here we just need to re-render or nothing, since routes will check auth if needed.
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+      setSession(session);
     });
 
     return () => subscription.unsubscribe();
@@ -36,15 +33,35 @@ function App() {
     );
   }
 
+  if (!session) {
+    return <Navigate to="/login" replace />;
+  }
+
+  return children;
+}
+
+function App() {
   return (
     <BrowserRouter>
       <Routes>
         <Route path="/" element={<Home />} />
         <Route path="/login" element={<Login />} />
         <Route path="/signup" element={<Signup />} />
-        <Route path="/role-selection" element={<RoleSelection />} />
-        <Route path="/dashboard/teacher" element={<TeacherDashboard />} />
-        <Route path="/dashboard/student" element={<StudentDashboard />} />
+        <Route path="/role-selection" element={
+          <ProtectedRoute>
+            <RoleSelection />
+          </ProtectedRoute>
+        } />
+        <Route path="/dashboard/teacher" element={
+          <ProtectedRoute>
+            <TeacherDashboard />
+          </ProtectedRoute>
+        } />
+        <Route path="/dashboard/student" element={
+          <ProtectedRoute>
+            <StudentDashboard />
+          </ProtectedRoute>
+        } />
       </Routes>
     </BrowserRouter>
   );

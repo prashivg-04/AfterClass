@@ -27,6 +27,7 @@ export default function Login() {
       });
 
       if (signInError) throw signInError;
+      if (!user) throw new Error('Login failed. Please try again.');
 
       // Check if user already has a role in profiles table
       const { data: profile, error: profileError } = await supabase
@@ -34,6 +35,10 @@ export default function Login() {
         .select('role')
         .eq('id', user.id)
         .maybeSingle();
+
+      if (profileError) {
+        console.error('Profile fetch error:', profileError);
+      }
 
       // If profile exists with a role, go to dashboard
       // Otherwise, go to role selection (first time or role not set)

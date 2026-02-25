@@ -71,6 +71,8 @@ export default function RoleSelection() {
         .upsert({
           id: user.id,
           role: selectedRole,
+          full_name: user.user_metadata?.full_name || user.email?.split('@')[0],
+          updated_at: new Date().toISOString(),
         });
 
       if (upsertError) throw upsertError;

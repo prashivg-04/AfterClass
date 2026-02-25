@@ -9,11 +9,13 @@ export default function Signup() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
+  const [message, setMessage] = useState('');
   const [loading, setLoading] = useState(false);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError('');
+    setMessage('');
 
     if (password.length < 6) {
       setError('Password must be at least 6 characters long.');
@@ -22,7 +24,7 @@ export default function Signup() {
 
     setLoading(true);
     try {
-      const { error: signUpError } = await supabase.auth.signUp({
+      const { data, error: signUpError } = await supabase.auth.signUp({
         email,
         password,
         options: {
@@ -34,7 +36,24 @@ export default function Signup() {
 
       if (signUpError) throw signUpError;
 
-      navigate('/role-selection');
+      // Check if email confirmation is required
+      if (data?.user?.identities?.length === 0) {
+        // User already exists
+        setError('An account with this email already exists. Please log in instead.');
+        return;
+      }
+
+      if (data?.session) {
+        // Auto-confirmed - create profile and navigate to role selection
+        await supabase.from('profiles').upsert({
+          id: data.user.id,
+          full_name: name,
+        });
+        navigate('/role-selection');
+      } else {
+        // Email confirmation required
+        setMessage('Check your email for the confirmation link to complete your account setup.');
+      }
     } catch (err) {
       setError(err.message || 'An error occurred during signup.');
     } finally {
@@ -48,6 +67,11 @@ export default function Signup() {
         {error && (
           <div className="p-3 text-sm text-red-600 bg-red-50 border border-red-200 rounded-lg">
             {error}
+          </div>
+        )}
+        {message && (
+          <div className="p-3 text-sm text-green-600 bg-green-50 border border-green-200 rounded-lg">
+            {message}
           </div>
         )}
         <div>
