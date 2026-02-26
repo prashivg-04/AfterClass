@@ -7,6 +7,7 @@ import Signup from './pages/Signup';
 import RoleSelection from './pages/RoleSelection';
 import TeacherDashboard from './pages/TeacherDashboard';
 import StudentDashboard from './pages/StudentDashboard';
+import TuitionDetail from './pages/TuitionDetail';
 
 function ProtectedRoute({ children }) {
   const [loading, setLoading] = useState(true);
@@ -60,6 +61,16 @@ function App() {
         <Route path="/dashboard/student" element={
           <ProtectedRoute>
             <StudentDashboard />
+          </ProtectedRoute>
+        } />
+        <Route path="/dashboard/teacher/tuition/:tuitionId" element={
+          <ProtectedRoute>
+            <TuitionDetail role="Teacher" />
+          </ProtectedRoute>
+        } />
+        <Route path="/dashboard/student/tuition/:tuitionId" element={
+          <ProtectedRoute>
+            <TuitionDetail role="Student" />
           </ProtectedRoute>
         } />
       </Routes>

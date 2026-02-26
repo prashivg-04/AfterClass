@@ -1,9 +1,171 @@
+import { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import DashboardLayout from '../components/dashboard/DashboardLayout';
+import { supabase } from '../lib/supabase';
 
 function StudentDashboard() {
+  const navigate = useNavigate();
+  const [tuitionId, setTuitionId] = useState('');
+  const [loading, setLoading] = useState(false);
+  const [message, setMessage] = useState('');
+  const [messageType, setMessageType] = useState('');
+  const [userId, setUserId] = useState(null);
+  const [joinedTuitions, setJoinedTuitions] = useState([]);
+
+  useEffect(() => {
+    const init = async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
+
+      setUserId(user.id);
+
+      // Fetch joined tuitions
+      const { data } = await supabase
+        .from('tuition_members')
+        .select(`
+          tuition_id,
+          role_in_tuition,
+          tuition_spaces (id, name, created_at)
+        `)
+        .eq('user_id', user.id)
+        .eq('role_in_tuition', 'student');
+
+      if (data) {
+        const tuitions = data.map(m => m.tuition_spaces).filter(Boolean);
+        setJoinedTuitions(tuitions);
+      }
+    };
+
+    init();
+  }, []);
+
+  const handleJoinTuition = async (e) => {
+    e.preventDefault();
+    if (!tuitionId.trim() || !userId) return;
+
+    setLoading(true);
+    setMessage('');
+
+    try {
+      // Check if tuition exists
+      const { data: tuition, error: tuitionError } = await supabase
+        .from('tuition_spaces')
+        .select('id, name')
+        .eq('id', tuitionId.trim())
+        .single();
+
+      if (tuitionError || !tuition) {
+        setMessage('Tuition not found. Please check the ID.');
+        setMessageType('error');
+        return;
+      }
+
+      // Check if already a member
+      const { data: existingMember } = await supabase
+        .from('tuition_members')
+        .select('id')
+        .eq('tuition_id', tuitionId.trim())
+        .eq('user_id', userId)
+        .maybeSingle();
+
+      if (existingMember) {
+        setMessage('You are already a member of this tuition.');
+        setMessageType('error');
+        return;
+      }
+
+      // Join the tuition
+      const { error: joinError } = await supabase
+        .from('tuition_members')
+        .insert({
+          user_id: userId,
+          tuition_id: tuitionId.trim(),
+          role_in_tuition: 'student',
+        });
+
+      if (joinError) throw joinError;
+
+      // Refresh tuitions list
+      const { data } = await supabase
+        .from('tuition_members')
+        .select('tuition_spaces (id, name, created_at)')
+        .eq('user_id', userId)
+        .eq('role_in_tuition', 'student');
+
+      if (data) {
+        setJoinedTuitions(data.map(m => m.tuition_spaces).filter(Boolean));
+      }
+
+      setMessage(`Successfully joined "${tuition.name}"!`);
+      setMessageType('success');
+      setTuitionId('');
+    } catch (err) {
+      setMessage(err.message || 'Failed to join tuition.');
+      setMessageType('error');
+    } finally {
+      setLoading(false);
+    }
+  };
+
   return (
     <DashboardLayout role="Student">
       <div className="space-y-6">
+        {/* Join Tuition Form */}
+        <div className="bg-white rounded-xl p-6 border border-slate-200 shadow-sm">
+          <h3 className="text-lg font-semibold text-slate-900 mb-4">Join a Tuition</h3>
+          <form onSubmit={handleJoinTuition} className="flex gap-3">
+            <input
+              type="text"
+              value={tuitionId}
+              onChange={(e) => setTuitionId(e.target.value)}
+              placeholder="Enter tuition ID..."
+              className="flex-1 px-4 py-2.5 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            />
+            <button
+              type="submit"
+              disabled={loading || !tuitionId.trim()}
+              className="px-6 py-2.5 bg-blue-600 text-white font-medium rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              {loading ? 'Joining...' : 'Join'}
+            </button>
+          </form>
+          {message && (
+            <p className={`text-sm mt-2 ${messageType === 'success' ? 'text-green-600' : 'text-red-600'}`}>
+              {message}
+            </p>
+          )}
+        </div>
+
+        {/* Joined Tuitions */}
+        <div className="bg-white rounded-xl border border-slate-200 shadow-sm">
+          <div className="p-6 border-b border-slate-200">
+            <h3 className="text-lg font-semibold text-slate-900">Your Tuitions</h3>
+          </div>
+          {joinedTuitions.length === 0 ? (
+            <div className="p-6 text-center text-slate-500">
+              No tuitions joined yet. Enter a tuition ID above to join.
+            </div>
+          ) : (
+            <div className="divide-y divide-slate-100">
+              {joinedTuitions.map((tuition) => (
+                <div
+                  key={tuition.id}
+                  onClick={() => navigate(`/dashboard/student/tuition/${tuition.id}`)}
+                  className="p-6 flex items-center justify-between hover:bg-slate-50 transition-colors cursor-pointer"
+                >
+                  <div>
+                    <p className="font-medium text-slate-900">{tuition.name}</p>
+                    <p className="text-sm text-slate-500 font-mono mt-1">ID: {tuition.id}</p>
+                  </div>
+                  <span className="px-3 py-1 bg-green-50 text-green-700 text-sm font-medium rounded-full">
+                    Student
+                  </span>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+
         {/* Stats Cards */}
         <div className="grid md:grid-cols-3 gap-6">
           <div className="bg-white rounded-xl p-6 border border-slate-200 shadow-sm">
@@ -63,110 +225,12 @@ function StudentDashboard() {
                 <div className="w-2 h-2 bg-red-500 rounded-full"></div>
                 <div>
                   <p className="font-medium text-slate-900">Physics Chapter 7 Quiz</p>
-                  <p className="text-sm text-slate-600">Due in 2 days • 15 questions</p>
+                  <p className="text-sm text-slate-600">Due in 2 days - 15 questions</p>
                 </div>
               </div>
               <button className="px-4 py-2 bg-slate-900 text-white text-sm rounded-lg hover:bg-slate-800 transition-colors">
                 Start Quiz
               </button>
-            </div>
-
-            <div className="p-6 flex items-center justify-between hover:bg-slate-50 transition-colors">
-              <div className="flex items-center gap-4">
-                <div className="w-2 h-2 bg-orange-500 rounded-full"></div>
-                <div>
-                  <p className="font-medium text-slate-900">Mathematics Assignment 5</p>
-                  <p className="text-sm text-slate-600">Due in 4 days • 20 questions</p>
-                </div>
-              </div>
-              <button className="px-4 py-2 bg-slate-900 text-white text-sm rounded-lg hover:bg-slate-800 transition-colors">
-                Start Quiz
-              </button>
-            </div>
-
-            <div className="p-6 flex items-center justify-between hover:bg-slate-50 transition-colors">
-              <div className="flex items-center gap-4">
-                <div className="w-2 h-2 bg-yellow-500 rounded-full"></div>
-                <div>
-                  <p className="font-medium text-slate-900">Chemistry Periodic Table Test</p>
-                  <p className="text-sm text-slate-600">Due in 6 days • 25 questions</p>
-                </div>
-              </div>
-              <button className="px-4 py-2 bg-slate-900 text-white text-sm rounded-lg hover:bg-slate-800 transition-colors">
-                Start Quiz
-              </button>
-            </div>
-
-            <div className="p-6 flex items-center justify-between hover:bg-slate-50 transition-colors">
-              <div className="flex items-center gap-4">
-                <div className="w-2 h-2 bg-green-500 rounded-full"></div>
-                <div>
-                  <p className="font-medium text-slate-900">Biology Cell Structure Quiz</p>
-                  <p className="text-sm text-slate-600">Due in 1 week • 12 questions</p>
-                </div>
-              </div>
-              <button className="px-4 py-2 bg-slate-900 text-white text-sm rounded-lg hover:bg-slate-800 transition-colors">
-                Start Quiz
-              </button>
-            </div>
-
-            <div className="p-6 flex items-center justify-between hover:bg-slate-50 transition-colors">
-              <div className="flex items-center gap-4">
-                <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
-                <div>
-                  <p className="font-medium text-slate-900">English Literature Essay</p>
-                  <p className="text-sm text-slate-600">Due in 1 week • Written assignment</p>
-                </div>
-              </div>
-              <button className="px-4 py-2 bg-slate-900 text-white text-sm rounded-lg hover:bg-slate-800 transition-colors">
-                View Details
-              </button>
-            </div>
-          </div>
-        </div>
-
-        {/* Progress Summary */}
-        <div className="bg-white rounded-xl p-6 border border-slate-200 shadow-sm">
-          <h3 className="text-lg font-semibold text-slate-900 mb-4">Subject Progress</h3>
-          <div className="space-y-4">
-            <div>
-              <div className="flex items-center justify-between mb-2">
-                <span className="text-sm font-medium text-slate-900">Physics</span>
-                <span className="text-sm text-slate-600">92%</span>
-              </div>
-              <div className="w-full bg-slate-100 rounded-full h-2">
-                <div className="bg-blue-600 h-2 rounded-full" style={{ width: '92%' }}></div>
-              </div>
-            </div>
-
-            <div>
-              <div className="flex items-center justify-between mb-2">
-                <span className="text-sm font-medium text-slate-900">Mathematics</span>
-                <span className="text-sm text-slate-600">87%</span>
-              </div>
-              <div className="w-full bg-slate-100 rounded-full h-2">
-                <div className="bg-purple-600 h-2 rounded-full" style={{ width: '87%' }}></div>
-              </div>
-            </div>
-
-            <div>
-              <div className="flex items-center justify-between mb-2">
-                <span className="text-sm font-medium text-slate-900">Chemistry</span>
-                <span className="text-sm text-slate-600">78%</span>
-              </div>
-              <div className="w-full bg-slate-100 rounded-full h-2">
-                <div className="bg-green-600 h-2 rounded-full" style={{ width: '78%' }}></div>
-              </div>
-            </div>
-
-            <div>
-              <div className="flex items-center justify-between mb-2">
-                <span className="text-sm font-medium text-slate-900">Biology</span>
-                <span className="text-sm text-slate-600">85%</span>
-              </div>
-              <div className="w-full bg-slate-100 rounded-full h-2">
-                <div className="bg-orange-600 h-2 rounded-full" style={{ width: '85%' }}></div>
-              </div>
             </div>
           </div>
         </div>
