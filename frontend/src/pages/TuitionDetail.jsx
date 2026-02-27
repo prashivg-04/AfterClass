@@ -1,12 +1,15 @@
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import DashboardLayout from '../components/dashboard/DashboardLayout';
+import ClassesTab from '../components/ClassesTab';
 import { supabase } from '../lib/supabase';
 
 function TuitionDetail({ role = 'Teacher' }) {
   const { tuitionId } = useParams();
   const navigate = useNavigate();
   const [tuition, setTuition] = useState(null);
+  const [students, setStudents] = useState([]);
+  const [classes, setClasses] = useState([]);
   const [activeTab, setActiveTab] = useState('overview');
   const [loading, setLoading] = useState(true);
 
@@ -16,11 +19,13 @@ function TuitionDetail({ role = 'Teacher' }) {
     ? [
         { id: 'overview', label: 'Overview' },
         { id: 'students', label: 'Students' },
+        { id: 'classes', label: 'Classes' },
         { id: 'topics', label: 'Topics' },
         { id: 'quizzes', label: 'Quizzes' },
       ]
     : [
         { id: 'overview', label: 'Overview' },
+        { id: 'classes', label: 'Classes' },
         { id: 'topics', label: 'Topics' },
         { id: 'quizzes', label: 'Quizzes' },
       ];
@@ -34,11 +39,57 @@ function TuitionDetail({ role = 'Teacher' }) {
         .single();
 
       setTuition(data);
+
+      if (isTeacher) {
+        // First get all student members
+        const { data: membersData, error: membersError } = await supabase
+          .from('tuition_members')
+          .select('user_id, created_at')
+          .eq('tuition_id', tuitionId)
+          .eq('role_in_tuition', 'student');
+
+        console.log('Members query:', { membersData, membersError });
+
+        if (membersData && membersData.length > 0) {
+          // Then get profile names for each student
+          const userIds = membersData.map(m => m.user_id);
+          const { data: profilesData } = await supabase
+            .from('profiles')
+            .select('id, full_name')
+            .in('id', userIds);
+
+          // Map profiles to members
+          const profileMap = {};
+          if (profilesData) {
+            profilesData.forEach(p => {
+              profileMap[p.id] = p.full_name;
+            });
+          }
+
+          setStudents(membersData.map(m => ({
+            user_id: m.user_id,
+            full_name: profileMap[m.user_id] || 'Unknown',
+            created_at: m.created_at
+          })));
+        } else {
+          setStudents([]);
+        }
+      }
+
+      // Fetch classes
+      const { data: classesData } = await supabase
+        .from('classes')
+        .select('*')
+        .eq('tuition_id', tuitionId)
+        .order('created_at', { ascending: false });
+
+      setClasses(classesData || []);
+
       setLoading(false);
     };
 
     fetchTuition();
-  }, [tuitionId]);
+  }, [tuitionId, isTeacher]);
 
   const handleBack = () => {
     navigate(`/dashboard/${role.toLowerCase()}`);
@@ -98,10 +149,44 @@ function TuitionDetail({ role = 'Teacher' }) {
             <div className="p-6 border-b border-slate-200">
               <h3 className="text-lg font-semibold text-slate-900">Students</h3>
             </div>
-            <div className="p-6 text-center text-slate-500">
-              No students enrolled yet.
-            </div>
+            {students.length === 0 ? (
+              <div className="p-6 text-center text-slate-500">
+                No students enrolled yet.
+              </div>
+            ) : (
+              <table className="w-full">
+                <thead className="bg-slate-50 border-b border-slate-200">
+                  <tr>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Name</th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Joined</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-slate-200">
+                  {students.map((student) => (
+                    <tr key={student.user_id} className="hover:bg-slate-50">
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <p className="text-sm font-medium text-slate-900">{student.full_name}</p>
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <p className="text-sm text-slate-500">
+                          {new Date(student.created_at).toLocaleDateString()}
+                        </p>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            )}
           </div>
+        );
+      case 'classes':
+        return (
+          <ClassesTab
+            classes={classes}
+            setClasses={setClasses}
+            tuitionId={tuitionId}
+            isTeacher={isTeacher}
+          />
         );
       case 'topics':
         return (
