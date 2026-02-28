@@ -3,6 +3,15 @@ import { useNavigate } from 'react-router-dom';
 import DashboardLayout from '../components/dashboard/DashboardLayout';
 import { supabase } from '../lib/supabase';
 
+function generateJoinCode() {
+  const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+  let code = '';
+  for (let i = 0; i < 6; i++) {
+    code += chars.charAt(Math.floor(Math.random() * chars.length));
+  }
+  return code;
+}
+
 function TeacherDashboard() {
   const navigate = useNavigate();
   const [tuitions, setTuitions] = useState([]);
@@ -39,10 +48,13 @@ function TeacherDashboard() {
     setError('');
 
     try {
+      // Generate a random 6-character join code
+      const joinCode = generateJoinCode();
+
       // 1. Create tuition space
       const { data: tuition, error: tuitionError } = await supabase
         .from('tuition_spaces')
-        .insert({ name: tuitionName, created_by: userId })
+        .insert({ name: tuitionName, created_by: userId, join_code: joinCode })
         .select()
         .single();
 
@@ -114,7 +126,7 @@ function TeacherDashboard() {
                   <div>
                     <p className="font-medium text-slate-900">{tuition.name}</p>
                     <p className="text-sm text-slate-500">
-                      ID: <span className="font-mono text-xs bg-slate-100 px-1.5 py-0.5 rounded">{tuition.id}</span>
+                      Join Code: <span className="font-mono text-xs bg-slate-100 px-1.5 py-0.5 rounded">{tuition.join_code || 'N/A'}</span>
                     </p>
                   </div>
                   <span className="px-3 py-1 bg-blue-50 text-blue-700 text-sm font-medium rounded-full">

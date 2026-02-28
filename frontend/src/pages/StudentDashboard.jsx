@@ -47,15 +47,15 @@ function StudentDashboard() {
     setMessage('');
 
     try {
-      // Check if tuition exists
+      // Check if tuition exists by join_code
       const { data: tuition, error: tuitionError } = await supabase
         .from('tuition_spaces')
         .select('id, name')
-        .eq('id', tuitionId.trim())
+        .eq('join_code', tuitionId.trim().toUpperCase())
         .single();
 
       if (tuitionError || !tuition) {
-        setMessage('Tuition not found. Please check the ID.');
+        setMessage('Tuition not found. Please check the code.');
         setMessageType('error');
         return;
       }
@@ -64,7 +64,7 @@ function StudentDashboard() {
       const { data: existingMember } = await supabase
         .from('tuition_members')
         .select('id')
-        .eq('tuition_id', tuitionId.trim())
+        .eq('tuition_id', tuition.id)
         .eq('user_id', userId)
         .maybeSingle();
 
@@ -79,7 +79,7 @@ function StudentDashboard() {
         .from('tuition_members')
         .insert({
           user_id: userId,
-          tuition_id: tuitionId.trim(),
+          tuition_id: tuition.id,
           role_in_tuition: 'student',
         });
 
@@ -118,7 +118,7 @@ function StudentDashboard() {
               type="text"
               value={tuitionId}
               onChange={(e) => setTuitionId(e.target.value)}
-              placeholder="Enter tuition ID..."
+              placeholder="Enter join code..."
               className="flex-1 px-4 py-2.5 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
             />
             <button
@@ -143,7 +143,7 @@ function StudentDashboard() {
           </div>
           {joinedTuitions.length === 0 ? (
             <div className="p-6 text-center text-slate-500">
-              No tuitions joined yet. Enter a tuition ID above to join.
+              No tuitions joined yet. Enter a join code above to join.
             </div>
           ) : (
             <div className="divide-y divide-slate-100">
@@ -155,7 +155,6 @@ function StudentDashboard() {
                 >
                   <div>
                     <p className="font-medium text-slate-900">{tuition.name}</p>
-                    <p className="text-sm text-slate-500 font-mono mt-1">ID: {tuition.id}</p>
                   </div>
                   <span className="px-3 py-1 bg-green-50 text-green-700 text-sm font-medium rounded-full">
                     Student

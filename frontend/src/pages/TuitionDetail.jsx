@@ -219,19 +219,27 @@ function TuitionDetail({ role = 'Teacher' }) {
     <DashboardLayout role={role}>
       <div className="space-y-6">
         {/* Header */}
-        <div className="flex items-center gap-4">
-          <button
-            onClick={handleBack}
-            className="p-2 hover:bg-slate-100 rounded-lg"
-          >
-            <svg className="w-5 h-5 text-slate-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
-            </svg>
-          </button>
-          <div>
-            <h1 className="text-2xl font-bold text-slate-900">{tuition.name}</h1>
-            <p className="text-sm text-slate-500">
-              Created {new Date(tuition.created_at).toLocaleDateString()}
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-4">
+            <button
+              onClick={handleBack}
+              className="p-2 hover:bg-slate-100 rounded-lg"
+            >
+              <svg className="w-5 h-5 text-slate-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+              </svg>
+            </button>
+            <div>
+              <h1 className="text-2xl font-bold text-slate-900">{tuition.name}</h1>
+              <p className="text-sm text-slate-500">
+                Created {new Date(tuition.created_at).toLocaleDateString()}
+              </p>
+            </div>
+          </div>
+          <div className="text-right">
+            <p className="text-sm text-slate-500">Join Code</p>
+            <p className="font-mono text-lg font-semibold bg-slate-100 px-3 py-1 rounded">
+              {tuition.join_code || 'N/A'}
             </p>
           </div>
         </div>
