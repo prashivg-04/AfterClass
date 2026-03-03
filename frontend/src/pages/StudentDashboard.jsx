@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import DashboardLayout from '../components/dashboard/DashboardLayout';
+import Rolling365Heatmap from '../components/Rolling365Heatmap';
 import { supabase } from '../lib/supabase';
 
 function StudentDashboard() {
@@ -11,6 +12,7 @@ function StudentDashboard() {
   const [messageType, setMessageType] = useState('');
   const [userId, setUserId] = useState(null);
   const [joinedTuitions, setJoinedTuitions] = useState([]);
+  const [globalAttendance, setGlobalAttendance] = useState([]);
 
   useEffect(() => {
     const init = async () => {
@@ -33,6 +35,47 @@ function StudentDashboard() {
       if (data) {
         const tuitions = data.map(m => m.tuition_spaces).filter(Boolean);
         setJoinedTuitions(tuitions);
+
+        // Get attendance data if student has joined tuitions
+        let dayCount = {};
+        if (tuitions.length > 0) {
+          const tuitionIds = tuitions.map(t => t.id);
+
+          // Get all classes from joined tuitions
+          const { data: classesData } = await supabase
+            .from('classes')
+            .select('id, tuition_id, created_at')
+            .in('tuition_id', tuitionIds);
+
+          if (classesData && classesData.length > 0) {
+            const classIds = classesData.map(c => c.id);
+
+            // Get attendance records for current user
+            const { data: attendanceData } = await supabase
+              .from('class_attendance')
+              .select('class_id, status')
+              .eq('student_id', user.id)
+              .eq('status', 'present')
+              .in('class_id', classIds);
+
+            // Map class_id to date
+            const classDateMap = {};
+            classesData.forEach(c => {
+              classDateMap[c.id] = c.created_at;
+            });
+
+            // Count present per day
+            if (attendanceData) {
+              attendanceData.forEach(a => {
+                const date = new Date(classDateMap[a.class_id]).toISOString().split('T')[0];
+                dayCount[date] = (dayCount[date] || 0) + 1;
+              });
+            }
+          }
+        }
+
+        // Set intensity map for rolling 365-day heatmap
+        setGlobalAttendance(dayCount);
       }
     };
 
@@ -136,6 +179,30 @@ function StudentDashboard() {
           )}
         </div>
 
+        {/* Global Attendance Heatmap */}
+        <div className="bg-white rounded-xl p-6 border border-slate-200 shadow-sm">
+          <h3 className="text-lg font-semibold text-slate-900 mb-4">Attendance Streak</h3>
+          <Rolling365Heatmap intensityMap={globalAttendance} mode="count" />
+          <div className="flex items-center gap-4 mt-4 text-xs text-slate-500">
+            <div className="flex items-center gap-1">
+              <div className="w-3 h-3 rounded-sm bg-slate-200"></div>
+              <span>0</span>
+            </div>
+            <div className="flex items-center gap-1">
+              <div className="w-3 h-3 rounded-sm bg-emerald-400"></div>
+              <span>1</span>
+            </div>
+            <div className="flex items-center gap-1">
+              <div className="w-3 h-3 rounded-sm bg-emerald-600"></div>
+              <span>2</span>
+            </div>
+            <div className="flex items-center gap-1">
+              <div className="w-3 h-3 rounded-sm bg-emerald-800"></div>
+              <span>3+</span>
+            </div>
+          </div>
+        </div>
+
         {/* Joined Tuitions */}
         <div className="bg-white rounded-xl border border-slate-200 shadow-sm">
           <div className="p-6 border-b border-slate-200">
@@ -175,7 +242,7 @@ function StudentDashboard() {
               </div>
               <div className="w-12 h-12 bg-orange-50 rounded-lg flex items-center justify-center">
                 <svg className="w-6 h-6 text-orange-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-M9 52h-2a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
                 </svg>
               </div>
             </div>
