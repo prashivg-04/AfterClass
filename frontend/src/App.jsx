@@ -1,6 +1,8 @@
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
-import { useEffect, useState } from 'react';
-import { supabase } from './lib/supabase';
+import { useSelector } from 'react-redux';
+import { PublicRoute } from './components/PublicRoute';
+import { PrivateRoute } from './components/PrivateRoute';
+import { RoleRoute } from './components/RoleRoute';
 import Home from './pages/Home';
 import Login from './pages/Login';
 import Signup from './pages/Signup';
@@ -10,22 +12,8 @@ import StudentDashboard from './pages/StudentDashboard';
 import TuitionDetail from './pages/TuitionDetail';
 import ClassDetail from './pages/ClassDetail';
 
-function ProtectedRoute({ children }) {
-  const [loading, setLoading] = useState(true);
-  const [session, setSession] = useState(null);
-
-  useEffect(() => {
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      setSession(session);
-      setLoading(false);
-    });
-
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
-      setSession(session);
-    });
-
-    return () => subscription.unsubscribe();
-  }, []);
+function App() {
+  const { loading } = useSelector((state) => state.auth);
 
   if (loading) {
     return (
@@ -35,54 +23,46 @@ function ProtectedRoute({ children }) {
     );
   }
 
-  if (!session) {
-    return <Navigate to="/login" replace />;
-  }
-
-  return children;
-}
-
-function App() {
   return (
     <BrowserRouter>
       <Routes>
         <Route path="/" element={<Home />} />
-        <Route path="/login" element={<Login />} />
-        <Route path="/signup" element={<Signup />} />
+        <Route path="/login" element={<PublicRoute><Login /></PublicRoute>} />
+        <Route path="/signup" element={<PublicRoute><Signup /></PublicRoute>} />
         <Route path="/role-selection" element={
-          <ProtectedRoute>
+          <PrivateRoute>
             <RoleSelection />
-          </ProtectedRoute>
+          </PrivateRoute>
         } />
         <Route path="/dashboard/teacher" element={
-          <ProtectedRoute>
+          <RoleRoute allowedRoles={['teacher']}>
             <TeacherDashboard />
-          </ProtectedRoute>
+          </RoleRoute>
         } />
         <Route path="/dashboard/student" element={
-          <ProtectedRoute>
+          <RoleRoute allowedRoles={['student']}>
             <StudentDashboard />
-          </ProtectedRoute>
+          </RoleRoute>
         } />
         <Route path="/dashboard/teacher/tuition/:tuitionId" element={
-          <ProtectedRoute>
+          <RoleRoute allowedRoles={['teacher']}>
             <TuitionDetail role="Teacher" />
-          </ProtectedRoute>
+          </RoleRoute>
         } />
         <Route path="/dashboard/student/tuition/:tuitionId" element={
-          <ProtectedRoute>
+          <RoleRoute allowedRoles={['student']}>
             <TuitionDetail role="Student" />
-          </ProtectedRoute>
+          </RoleRoute>
         } />
         <Route path="/dashboard/teacher/tuition/:tuitionId/class/:classId" element={
-          <ProtectedRoute>
+          <RoleRoute allowedRoles={['teacher']}>
             <ClassDetail role="Teacher" />
-          </ProtectedRoute>
+          </RoleRoute>
         } />
         <Route path="/dashboard/student/tuition/:tuitionId/class/:classId" element={
-          <ProtectedRoute>
+          <RoleRoute allowedRoles={['student']}>
             <ClassDetail role="Student" />
-          </ProtectedRoute>
+          </RoleRoute>
         } />
       </Routes>
     </BrowserRouter>

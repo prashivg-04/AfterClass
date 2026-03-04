@@ -1,7 +1,23 @@
 import { useNavigate } from 'react-router-dom';
+import { supabase } from '../../lib/supabase';
 
 function DashboardLayout({ children, role }) {
   const navigate = useNavigate();
+
+  const handleLogout = async () => {
+    console.log('Logout clicked');
+
+    const { error } = await supabase.auth.signOut();
+
+    if (error) {
+      console.error('Logout error:', error);
+    } else {
+      console.log('SignOut successful, navigating to /login');
+    }
+
+    // Navigate after signOut completes
+    navigate('/login');
+  };
 
   return (
     <div className="min-h-screen bg-slate-50 flex">
@@ -69,7 +85,7 @@ function DashboardLayout({ children, role }) {
 
         <div className="p-4 border-t border-slate-200">
           <button
-            onClick={() => navigate('/')}
+            onClick={handleLogout}
             className="w-full flex items-center gap-3 px-4 py-3 text-slate-600 hover:bg-slate-50 rounded-lg"
           >
             <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">

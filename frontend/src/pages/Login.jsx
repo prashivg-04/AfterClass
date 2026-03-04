@@ -21,13 +21,27 @@ export default function Login() {
 
     setLoading(true);
     try {
-      const { data: { user }, error: signInError } = await supabase.auth.signInWithPassword({
+      const { data, error: signInError } = await supabase.auth.signInWithPassword({
         email,
         password,
       });
 
-      if (signInError) throw signInError;
-      if (!user) throw new Error('Login failed. Please try again.');
+      if (signInError) {
+        // Handle specific error messages
+        if (signInError.message.includes('Invalid login credentials')) {
+          throw new Error('Invalid email or password. Please try again.');
+        }
+        if (signInError.message.includes('Email not confirmed')) {
+          throw new Error('Please verify your email address before logging in.');
+        }
+        throw signInError;
+      }
+
+      if (!data?.user) {
+        throw new Error('Login failed. Please try again.');
+      }
+
+      const user = data.user;
 
       // Check if user already has a role in profiles table
       const { data: profile, error: profileError } = await supabase
