@@ -62,6 +62,8 @@ The application uses Supabase as its backend-as-a-service, leveraging its Postgr
   - `tuition_id` (UUID): The tuition space this class belongs to.
   - `name` (Text): The custom name for the specific class session.
   - `topics` (Array of Text): List of topics covered in this class (e.g., `['Algebra', 'Geometry']`).
+  - `class_date` (Date): The date of the class session.
+  - `summary` (Text): A summary or notes about the class.
   - `created_at` (Timestamptz): Timestamp of when the class was created.
 - **Relationships**:
   - `tuition_id` references `tuition_spaces.id`.
