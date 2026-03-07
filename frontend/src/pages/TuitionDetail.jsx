@@ -2,14 +2,25 @@ import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import DashboardLayout from '../components/dashboard/DashboardLayout';
 import ClassesTab from '../components/ClassesTab';
-import Rolling365Heatmap from '../components/Rolling365Heatmap';
 import { supabase } from '../lib/supabase';
+
+import {
+  TuitionHeader,
+  TuitionTabs,
+  OverviewTab,
+  StudentsTab,
+  ResourcesTab,
+  AnnouncementsTab,
+  DiscussionTab,
+  QuizzesTab,
+  StudentDetailsModal,
+  RemoveStudentModal
+} from '../components/tuition-detail';
 
 // Normalize date to local YYYY-MM-DD (strip time, use local timezone)
 function normalizeToLocalDate(dateString) {
   if (!dateString) return null;
   const date = new Date(dateString);
-  // Create date in local timezone by using the date components
   const year = date.getFullYear();
   const month = String(date.getMonth() + 1).padStart(2, '0');
   const day = String(date.getDate()).padStart(2, '0');
@@ -27,10 +38,21 @@ function TuitionDetail({ role = 'Teacher' }) {
   const [currentUser, setCurrentUser] = useState(null);
   const [attendanceData, setAttendanceData] = useState([]);
   const [removingStudent, setRemovingStudent] = useState(null);
+  const [selectedStudent, setSelectedStudent] = useState(null);
   const [showRemoveModal, setShowRemoveModal] = useState(false);
   const [removeError, setRemoveError] = useState(null);
   const [tuitionCreatedDate, setTuitionCreatedDate] = useState(null);
   const [studentJoinedDate, setStudentJoinedDate] = useState(null);
+  const [copied, setCopied] = useState(false);
+
+  const formatDate = (dateString) => {
+    if (!dateString) return '';
+    return new Date(dateString).toLocaleDateString(undefined, {
+      year: 'numeric',
+      month: 'short',
+      day: 'numeric'
+    });
+  };
 
   const isTeacher = role === 'Teacher';
 
@@ -39,13 +61,17 @@ function TuitionDetail({ role = 'Teacher' }) {
       { id: 'overview', label: 'Overview' },
       { id: 'students', label: 'Students' },
       { id: 'classes', label: 'Classes' },
-      { id: 'topics', label: 'Topics' },
+      { id: 'resources', label: 'Resources' },
+      { id: 'announcements', label: 'Announcements' },
+      { id: 'discussion', label: 'Discussion' },
       { id: 'quizzes', label: 'Quizzes' },
     ]
     : [
       { id: 'overview', label: 'Overview' },
       { id: 'classes', label: 'Classes' },
-      { id: 'topics', label: 'Topics' },
+      { id: 'resources', label: 'Resources' },
+      { id: 'announcements', label: 'Announcements' },
+      { id: 'discussion', label: 'Discussion' },
       { id: 'quizzes', label: 'Quizzes' },
     ];
 
@@ -69,13 +95,11 @@ function TuitionDetail({ role = 'Teacher' }) {
 
       if (isTeacher) {
         // First get all student members
-        const { data: membersData, error: membersError } = await supabase
+        const { data: membersData } = await supabase
           .from('tuition_members')
           .select('user_id, created_at')
           .eq('tuition_id', tuitionId)
           .eq('role_in_tuition', 'student');
-
-        console.log('Members query:', { membersData, membersError });
 
         if (membersData && membersData.length > 0) {
           // Then get profile names for each student
@@ -126,14 +150,6 @@ function TuitionDetail({ role = 'Teacher' }) {
         // Normalize student join date to local YYYY-MM-DD
         const studentJoined = normalizeToLocalDate(memberData?.created_at);
         setStudentJoinedDate(studentJoined);
-
-        // Validate: student join date cannot be before tuition created date
-        if (studentJoined && tuitionCreated && studentJoined < tuitionCreated) {
-          console.error('Error: student_join_date cannot be before tuition_created_date', {
-            studentJoined,
-            tuitionCreated
-          });
-        }
 
         const classIds = classesData?.map(c => c.id) || [];
 
@@ -219,6 +235,61 @@ function TuitionDetail({ role = 'Teacher' }) {
     setRemoveError(null);
   };
 
+  const copyJoinCode = () => {
+    if (tuition?.join_code) {
+      navigator.clipboard.writeText(tuition.join_code).then(() => {
+        setCopied(true);
+        setTimeout(() => setCopied(false), 2000); // Reset copied state after 2 seconds
+      }).catch(err => {
+        console.error('Failed to copy join code: ', err);
+      });
+    }
+  };
+
+  const renderTabContent = () => {
+    switch (activeTab) {
+      case 'overview':
+        return (
+          <OverviewTab
+            tuition={tuition}
+            isTeacher={isTeacher}
+            attendanceData={attendanceData}
+            tuitionCreatedDate={tuitionCreatedDate}
+            studentJoinedDate={studentJoinedDate}
+          />
+        );
+      case 'students':
+        if (!isTeacher) return null;
+        return (
+          <StudentsTab
+            students={students}
+            currentUser={currentUser}
+            onStudentClick={setSelectedStudent}
+            onRemoveClick={handleRemoveClick}
+          />
+        );
+      case 'classes':
+        return (
+          <ClassesTab
+            classes={classes}
+            setClasses={setClasses}
+            tuitionId={tuitionId}
+            isTeacher={isTeacher}
+          />
+        );
+      case 'resources':
+        return <ResourcesTab />;
+      case 'announcements':
+        return <AnnouncementsTab />;
+      case 'discussion':
+        return <DiscussionTab />;
+      case 'quizzes':
+        return <QuizzesTab />;
+      default:
+        return null;
+    }
+  };
+
   if (loading) {
     return (
       <DashboardLayout role={role}>
@@ -245,190 +316,124 @@ function TuitionDetail({ role = 'Teacher' }) {
     );
   }
 
-  const renderTabContent = () => {
-    switch (activeTab) {
-      case 'overview':
-        return (
-          <div className="space-y-6">
-            <div className="grid md:grid-cols-3 gap-6">
-              <div className="bg-white rounded-xl p-6 border border-slate-200 shadow-sm">
-                <p className="text-sm text-slate-600 mb-1">{isTeacher ? 'Total Students' : 'Enrolled'}</p>
-                <p className="text-3xl font-bold text-slate-900">0</p>
-              </div>
-              <div className="bg-white rounded-xl p-6 border border-slate-200 shadow-sm">
-                <p className="text-sm text-slate-600 mb-1">Topics</p>
-                <p className="text-3xl font-bold text-slate-900">0</p>
-              </div>
-              <div className="bg-white rounded-xl p-6 border border-slate-200 shadow-sm">
-                <p className="text-sm text-slate-600 mb-1">Quizzes</p>
-                <p className="text-3xl font-bold text-slate-900">0</p>
-              </div>
-            </div>
-
-            {/* Attendance Heatmap for Students */}
-            {!isTeacher && (
-              <div className="bg-white rounded-xl p-6 border border-slate-200 shadow-sm overflow-hidden">
-                <h3 className="text-lg font-semibold text-slate-900 mb-4">Attendance</h3>
-                <Rolling365Heatmap
-                  intensityMap={attendanceData}
-                  tuitionCreatedAt={tuitionCreatedDate}
-                  studentJoinedAt={studentJoinedDate}
-                />
-                <div className="flex flex-wrap items-center gap-x-6 gap-y-2 mt-4 text-xs text-slate-500">
-                  <div className="flex items-center gap-1.5">
-                    <div className="w-3 h-3 rounded-[2px] bg-[#10b981]"></div>
-                    <span>Present</span>
-                  </div>
-                  <div className="flex items-center gap-1.5">
-                    <div className="w-3 h-3 rounded-[2px] bg-[#f87171]"></div>
-                    <span>Absent</span>
-                  </div>
-                  <div className="flex items-center gap-1.5">
-                    <div className="w-3 h-3 rounded-[2px] bg-[#e2e8f0]"></div>
-                    <span>No record</span>
-                  </div>
-                  <div className="flex items-center gap-1.5 ml-2">
-                    <div className="relative w-3 h-3 rounded-[2px] bg-[#e2e8f0] overflow-hidden">
-                      <div className="absolute top-0 left-0 w-0 h-0 border-t-[5px] border-r-[5px] border-t-blue-500 border-r-transparent"></div>
-                    </div>
-                    <span>Tuition created</span>
-                  </div>
-                  <div className="flex items-center gap-1.5">
-                    <div className="relative w-3 h-3 rounded-[2px] bg-[#e2e8f0] overflow-hidden">
-                      <div className="absolute top-0 right-0 w-0 h-0 border-t-[5px] border-l-[5px] border-t-purple-500 border-l-transparent"></div>
-                    </div>
-                    <span>Student joined</span>
-                  </div>
-                </div>
-              </div>
-            )}
-          </div>
-        );
-      case 'students':
-        if (!isTeacher) return null;
-        return (
-          <div className="bg-white rounded-xl border border-slate-200 shadow-sm">
-            <div className="p-6 border-b border-slate-200">
-              <h3 className="text-lg font-semibold text-slate-900">Students</h3>
-            </div>
-            {students.length === 0 ? (
-              <div className="p-6 text-center text-slate-500">
-                No students enrolled yet.
-              </div>
-            ) : (
-              <table className="w-full">
-                <thead className="bg-slate-50 border-b border-slate-200">
-                  <tr>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Name</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Joined</th>
-                    <th className="px-6 py-3 text-right text-xs font-medium text-slate-500 uppercase tracking-wider">Actions</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-slate-200">
-                  {students.map((student) => (
-                    <tr key={student.user_id} className="hover:bg-slate-50">
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <p className="text-sm font-medium text-slate-900">{student.full_name}</p>
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <p className="text-sm text-slate-500">
-                          {new Date(student.created_at).toLocaleDateString()}
-                        </p>
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-right">
-                        {currentUser && student.user_id !== currentUser.id && (
-                          <button
-                            onClick={() => handleRemoveClick(student)}
-                            className="text-sm text-red-600 hover:text-red-800 font-medium"
-                          >
-                            Remove
-                          </button>
-                        )}
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            )}
-          </div>
-        );
-      case 'classes':
-        return (
-          <ClassesTab
-            classes={classes}
-            setClasses={setClasses}
-            tuitionId={tuitionId}
-            isTeacher={isTeacher}
-          />
-        );
-      case 'topics':
-        return (
-          <div className="bg-white rounded-xl border border-slate-200 shadow-sm">
-            <div className="p-6 border-b border-slate-200">
-              <h3 className="text-lg font-semibold text-slate-900">Topics</h3>
-            </div>
-            <div className="p-6 text-center text-slate-500">
-              No topics yet.
-            </div>
-          </div>
-        );
-      case 'quizzes':
-        return (
-          <div className="bg-white rounded-xl border border-slate-200 shadow-sm">
-            <div className="p-6 border-b border-slate-200">
-              <h3 className="text-lg font-semibold text-slate-900">Quizzes</h3>
-            </div>
-            <div className="p-6 text-center text-slate-500">
-              No quizzes yet.
-            </div>
-          </div>
-        );
-      default:
-        return null;
-    }
-  };
-
   return (
     <DashboardLayout role={role}>
       <div className="space-y-6">
-        {/* Header */}
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-4">
+        {/* Header Section */}
+        <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-6 sm:p-8 relative overflow-hidden">
+          {/* Decorative background element */}
+          <div className="absolute top-0 right-0 w-64 h-64 bg-linear-to-br from-blue-50 to-indigo-50 rounded-full blur-3xl -mr-20 -mt-20 opacity-70 pointer-events-none"></div>
+
+          <div className="relative flex flex-col sm:flex-row sm:items-start gap-5">
             <button
-              onClick={handleBack}
-              className="p-2 hover:bg-slate-100 rounded-lg"
+              onClick={() => navigate(`/dashboard/${role.toLowerCase()}`)}
+              className="shrink-0 w-10 h-10 flex items-center justify-center bg-slate-50 hover:bg-slate-100 text-slate-600 rounded-full transition-colors self-start border border-slate-200"
+              aria-label="Back to dashboard"
             >
-              <svg className="w-5 h-5 text-slate-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" />
               </svg>
             </button>
-            <div>
-              <h1 className="text-2xl font-bold text-slate-900">{tuition.name}</h1>
-              <p className="text-sm text-slate-500">
-                Created {tuitionCreatedDate}
-              </p>
+
+            <div className="flex-1">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-3">
+                <div className="flex items-center gap-3">
+                  <div className="w-12 h-12 bg-blue-100/50 rounded-xl flex items-center justify-center border border-blue-200/50 shadow-sm shrink-0">
+                    <svg className="w-6 h-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
+                    </svg>
+                  </div>
+                  <h1 className="text-2xl sm:text-3xl font-bold text-slate-900 tracking-tight">{tuition.name}</h1>
+                </div>
+
+                <div className="flex items-center gap-2 text-sm font-medium px-3 py-1.5 bg-blue-50 text-blue-700 rounded-lg border border-blue-100/50 self-start sm:self-auto shrink-0">
+                  <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                  </svg>
+                  <span>Created {formatDate(tuition.created_at)}</span>
+                </div>
+              </div>
+
+              {tuition.description && (
+                <p className="text-slate-600 mb-5 leading-relaxed sm:ml-15">{tuition.description}</p>
+              )}
+
+              <div className="flex flex-wrap gap-2 sm:ml-15 mb-6">
+                {tuition.subject && (
+                  <span className="inline-flex items-center px-2.5 py-1 rounded-lg text-xs font-semibold bg-indigo-50 text-indigo-700 border border-indigo-100">
+                    <span className="w-1.5 h-1.5 rounded-full bg-indigo-500 mr-1.5"></span>
+                    {tuition.subject}
+                  </span>
+                )}
+                {tuition.grade && (
+                  <span className="inline-flex items-center px-2.5 py-1 rounded-lg text-xs font-semibold bg-purple-50 text-purple-700 border border-purple-100">
+                    <span className="w-1.5 h-1.5 rounded-full bg-purple-500 mr-1.5"></span>
+                    {tuition.grade}
+                  </span>
+                )}
+                {tuition.batch && (
+                  <span className="inline-flex items-center px-2.5 py-1 rounded-lg text-xs font-semibold bg-emerald-50 text-emerald-700 border border-emerald-100">
+                    <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 mr-1.5"></span>
+                    {tuition.batch}
+                  </span>
+                )}
+              </div>
             </div>
-          </div>
-          <div className="text-right">
-            <p className="text-sm text-slate-500">Join Code</p>
-            <p className="font-mono text-lg font-semibold bg-slate-100 px-3 py-1 rounded">
-              {tuition.join_code || 'N/A'}
-            </p>
+
+            {/* Teacher Share Code / Student Teacher Info */}
+            {isTeacher ? (
+              <div className="shrink-0 bg-slate-50/80 p-4 rounded-xl border border-slate-200/60 shadow-sm sm:mt-0 max-w-xs w-full sm:w-64">
+                <p className="text-xs font-bold text-slate-700 mb-2 uppercase tracking-wider text-center">Invite Students</p>
+                <div className="flex items-center gap-2 w-full mb-1">
+                  <div className="bg-white border border-slate-200 px-3 py-2.5 rounded-lg text-slate-800 font-mono tracking-wider font-bold shadow-inner flex-1 text-center text-lg">
+                    {tuition.join_code}
+                  </div>
+                  <button
+                    onClick={copyJoinCode}
+                    className="p-3 bg-white border border-slate-200 text-slate-600 hover:text-blue-600 hover:border-blue-200 hover:bg-blue-50 rounded-lg transition-all shadow-sm group"
+                    title="Copy Join Code"
+                  >
+                    {copied ? (
+                      <svg className="w-5 h-5 text-emerald-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                      </svg>
+                    ) : (
+                      <svg className="w-5 h-5 group-hover:scale-110 transition-transform" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
+                      </svg>
+                    )}
+                  </button>
+                </div>
+                <p className="text-[10px] text-slate-500 text-center w-full leading-tight text-balance">Share this code to allow students to join.</p>
+              </div>
+            ) : (
+              tuition.teacher && (
+                <div className="flex items-center gap-3 bg-slate-50/80 p-3 lg:p-4 rounded-xl border border-slate-200/60 shadow-sm shrink-0 sm:mt-0">
+                  <div className="w-10 h-10 bg-indigo-100 rounded-full flex items-center justify-center text-indigo-700 font-bold border border-indigo-200">
+                    {tuition.teacher.full_name?.charAt(0) || 'T'}
+                  </div>
+                  <div>
+                    <p className="text-xs text-slate-500 font-medium">Teacher</p>
+                    <p className="text-sm font-semibold text-slate-800">{tuition.teacher.full_name}</p>
+                  </div>
+                </div>
+              )
+            )}
           </div>
         </div>
 
-        {/* Tabs */}
-        <div className="border-b border-slate-200">
-          <nav className="flex gap-8">
+        {/* Tabs - Modern Scrollable Pill Style */}
+        <div className="border-b border-slate-200 mt-6 sm:px-2">
+          <nav className="flex space-x-1 sm:space-x-8 min-w-max pb-1 overflow-x-auto scrollbar-hide" aria-label="Tabs">
             {tabs.map((tab) => (
               <button
                 key={tab.id}
                 onClick={() => setActiveTab(tab.id)}
                 className={`
-                  pb-4 text-sm font-medium transition-colors border-b-2 -mb-px
+                  whitespace-nowrap py-3 px-3 sm:px-1 border-b-2 font-semibold text-sm transition-all duration-200 select-none
                   ${activeTab === tab.id
-                    ? 'text-blue-600 border-blue-600'
-                    : 'text-slate-600 border-transparent hover:text-slate-900 hover:border-slate-300'
+                    ? 'border-blue-600 text-blue-600'
+                    : 'border-transparent text-slate-500 hover:text-slate-800 hover:border-slate-300'
                   }
                 `}
               >
@@ -438,40 +443,19 @@ function TuitionDetail({ role = 'Teacher' }) {
           </nav>
         </div>
 
-        {/* Tab Content */}
         {renderTabContent()}
 
-        {/* Remove Confirmation Modal */}
-        {showRemoveModal && (
-          <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-            <div className="bg-white rounded-xl p-6 max-w-md w-full mx-4 shadow-xl">
-              <h3 className="text-lg font-semibold text-slate-900 mb-2">
-                Remove Student
-              </h3>
-              <p className="text-slate-600 mb-6">
-                Are you sure you want to remove {removingStudent?.full_name} from this tuition?
-              </p>
-              {removeError && (
-                <p className="text-red-600 text-sm mb-4">{removeError}</p>
-              )}
-              <div className="flex justify-end gap-3">
-                <button
-                  onClick={handleCancelRemove}
-                  className="px-4 py-2 text-sm font-medium text-slate-700 bg-slate-100 rounded-lg hover:bg-slate-200"
-                >
-                  Cancel
-                </button>
-                <button
-                  onClick={handleConfirmRemove}
-                  disabled={removingStudent === null}
-                  className="px-4 py-2 text-sm font-medium text-white bg-red-600 rounded-lg hover:bg-red-700 disabled:opacity-50"
-                >
-                  Confirm Remove
-                </button>
-              </div>
-            </div>
-          </div>
-        )}
+        <RemoveStudentModal
+          student={removingStudent}
+          error={removeError}
+          onCancel={handleCancelRemove}
+          onConfirm={handleConfirmRemove}
+        />
+
+        <StudentDetailsModal
+          student={selectedStudent}
+          onClose={() => setSelectedStudent(null)}
+        />
       </div>
     </DashboardLayout>
   );
