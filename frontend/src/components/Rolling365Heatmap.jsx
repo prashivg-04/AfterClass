@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useRef, useLayoutEffect } from 'react';
 
 function Rolling365Heatmap({ intensityMap, tuitionCreatedAt, studentJoinedAt, mode = 'status' }) {
   const [tooltip, setTooltip] = useState({
@@ -189,8 +189,26 @@ function Rolling365Heatmap({ intensityMap, tuitionCreatedAt, studentJoinedAt, mo
     return checkDate >= startDate && checkDate <= today;
   };
 
+  const scrollContainerRef = useRef(null);
+
+  // Auto-scroll to the right (latest dates) on mount
+  useLayoutEffect(() => {
+    if (scrollContainerRef.current) {
+      // Small timeout ensures the DOM has fully rendered the blocks before measuring scrollWidth
+      const timeoutId = setTimeout(() => {
+        if (scrollContainerRef.current) {
+          scrollContainerRef.current.scrollLeft = scrollContainerRef.current.scrollWidth;
+        }
+      }, 50);
+      return () => clearTimeout(timeoutId);
+    }
+  }, []);
+
   return (
-    <div className="w-full overflow-x-auto py-2 scrollbar-hide relative">
+    <div
+      ref={scrollContainerRef}
+      className="w-full overflow-x-auto py-2 scrollbar-hide relative"
+    >
       <div className="flex w-max" style={{ gap: `${monthGap}px` }}>
         {allBlocks.map((block) => (
           <div key={block.id} className="flex flex-col">

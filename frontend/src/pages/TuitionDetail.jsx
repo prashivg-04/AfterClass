@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef, useLayoutEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import DashboardLayout from '../components/dashboard/DashboardLayout';
 import ClassesTab from '../components/ClassesTab';
@@ -44,6 +44,8 @@ function TuitionDetail({ role = 'Teacher' }) {
   const [tuitionCreatedDate, setTuitionCreatedDate] = useState(null);
   const [studentJoinedDate, setStudentJoinedDate] = useState(null);
   const [copied, setCopied] = useState(false);
+  const [indicatorStyle, setIndicatorStyle] = useState({ left: 0, width: 0 });
+  const tabsRef = useRef([]);
 
   const formatDate = (dateString) => {
     if (!dateString) return '';
@@ -74,6 +76,23 @@ function TuitionDetail({ role = 'Teacher' }) {
       { id: 'discussion', label: 'Discussion' },
       { id: 'quizzes', label: 'Quizzes' },
     ];
+
+  useLayoutEffect(() => {
+    const updateIndicator = () => {
+      const activeIndex = tabs.findIndex(t => t.id === activeTab);
+      const activeElement = tabsRef.current[activeIndex];
+      if (activeElement) {
+        setIndicatorStyle({
+          left: activeElement.offsetLeft,
+          width: activeElement.offsetWidth,
+        });
+      }
+    };
+
+    updateIndicator();
+    const timeout = setTimeout(updateIndicator, 50);
+    return () => clearTimeout(timeout);
+  }, [activeTab, tabs.length, loading]);
 
   useEffect(() => {
     const fetchTuition = async () => {
@@ -422,18 +441,24 @@ function TuitionDetail({ role = 'Teacher' }) {
           </div>
         </div>
 
-        {/* Tabs - Modern Scrollable Pill Style */}
-        <div className="border-b border-slate-200 mt-6 sm:px-2">
-          <nav className="flex space-x-1 sm:space-x-8 min-w-max pb-1 overflow-x-auto scrollbar-hide" aria-label="Tabs">
-            {tabs.map((tab) => (
+        {/* Tabs - Modern Premium Style */}
+        <div className="border-b border-slate-200 mt-6 px-4 sm:px-6 flex overflow-x-auto scrollbar-hide">
+          <nav className="flex gap-6 sm:gap-8 min-w-max relative pb-0 w-full" aria-label="Tabs">
+            {/* Animated Background Underline */}
+            <div
+              className="absolute bottom-0 h-[3px] bg-blue-600 rounded-t-md transition-all duration-300 ease-in-out will-change-[left,width]"
+              style={{ left: indicatorStyle.left, width: indicatorStyle.width }}
+            />
+            {tabs.map((tab, index) => (
               <button
                 key={tab.id}
+                ref={el => tabsRef.current[index] = el}
                 onClick={() => setActiveTab(tab.id)}
                 className={`
-                  whitespace-nowrap py-3 px-3 sm:px-1 border-b-2 font-semibold text-sm transition-all duration-200 select-none
+                  relative whitespace-nowrap py-4 px-1 font-semibold text-sm transition-colors duration-200 select-none outline-none
                   ${activeTab === tab.id
-                    ? 'border-blue-600 text-blue-600'
-                    : 'border-transparent text-slate-500 hover:text-slate-800 hover:border-slate-300'
+                    ? 'text-blue-700'
+                    : 'text-slate-500 hover:text-slate-900'
                   }
                 `}
               >

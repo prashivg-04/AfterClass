@@ -20,15 +20,15 @@ function DashboardLayout({ children, role }) {
   };
 
   return (
-    <div className="min-h-screen bg-slate-50 flex">
+    <div className="h-screen overflow-hidden bg-slate-50 flex">
       {/* Sidebar */}
-      <aside className="w-64 bg-white border-r border-slate-200 flex flex-col">
+      <aside className="w-64 shrink-0 bg-white border-r border-slate-200 flex flex-col h-full">
         <div className="p-6 border-b border-slate-200">
           <h1 className="text-2xl font-bold text-slate-900">AfterClass</h1>
           <p className="text-sm text-slate-600 mt-1">{role} Dashboard</p>
         </div>
 
-        <nav className="flex-1 p-4 space-y-2">
+        <nav className="flex-1 overflow-y-auto p-4 space-y-2 scrollbar-hide">
           <a href="#" className="flex items-center gap-3 px-4 py-3 text-slate-900 bg-slate-100 rounded-lg font-medium">
             <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
@@ -97,7 +97,7 @@ function DashboardLayout({ children, role }) {
       </aside>
 
       {/* Main Content */}
-      <div className="flex-1 flex flex-col">
+      <div className="flex-1 flex flex-col h-full overflow-hidden">
         {/* Header */}
         <header className="bg-white border-b border-slate-200 px-8 py-4">
           <div className="flex items-center justify-between">
@@ -116,7 +116,7 @@ function DashboardLayout({ children, role }) {
         </header>
 
         {/* Content */}
-        <main className="flex-1 p-8">
+        <main className="flex-1 overflow-y-auto p-8 scrollbar-hide">
           {children}
         </main>
       </div>
