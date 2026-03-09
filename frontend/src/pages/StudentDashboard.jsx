@@ -1,12 +1,15 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import toast from 'react-hot-toast';
 import DashboardLayout from '../components/dashboard/DashboardLayout';
 import Rolling365Heatmap from '../components/Rolling365Heatmap';
 import { supabase } from '../lib/supabase';
+import { joinSchema } from '../schemas/join.schema';
 
 function StudentDashboard() {
   const navigate = useNavigate();
-  const [tuitionId, setTuitionId] = useState('');
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState('');
   const [messageType, setMessageType] = useState('');
@@ -15,7 +18,20 @@ function StudentDashboard() {
   const [globalAttendance, setGlobalAttendance] = useState([]);
   const [showJoinModal, setShowJoinModal] = useState(false);
   const [joining, setJoining] = useState(false);
-  const [error, setError] = useState(null);
+
+  const {
+    register,
+    handleSubmit,
+    reset,
+    setValue,
+    watch,
+    formState: { errors },
+  } = useForm({
+    resolver: zodResolver(joinSchema),
+    defaultValues: {
+      joinCode: '',
+    },
+  });
 
   useEffect(() => {
     const init = async () => {
@@ -85,38 +101,39 @@ function StudentDashboard() {
     init();
   }, []);
 
-  const handleJoinTuition = async (e) => {
-    e.preventDefault();
-    if (!tuitionId.trim() || !userId) return;
+  const handleJoinTuition = async (data) => {
+    // Get authenticated user directly
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) return;
+
+    const userId = user.id;
 
     setLoading(true);
-    setMessage('');
 
     try {
       // Check if tuition exists by join_code
-      const { data: tuition, error: tuitionError } = await supabase
+      const joinCodeValue = data.joinCode.trim().toUpperCase();
+
+      const { data: tuition } = await supabase
         .from('tuition_spaces')
         .select('id, name')
-        .eq('join_code', tuitionId.trim().toUpperCase())
-        .single();
+        .eq('join_code', joinCodeValue)
+        .maybeSingle();
 
-      if (tuitionError || !tuition) {
-        setMessage('Tuition not found. Please check the code.');
-        setMessageType('error');
+      if (!tuition) {
+        toast.error('Invalid join code');
         return;
       }
 
       // Check if already a member
-      const { data: existingMember } = await supabase
+      const { data: existingMembers } = await supabase
         .from('tuition_members')
         .select('id')
         .eq('tuition_id', tuition.id)
-        .eq('user_id', userId)
-        .maybeSingle();
+        .eq('user_id', userId);
 
-      if (existingMember) {
-        setMessage('You are already a member of this tuition.');
-        setMessageType('error');
+      if (existingMembers && existingMembers.length > 0) {
+        toast.error('You are already a member of this tuition');
         return;
       }
 
@@ -129,26 +146,32 @@ function StudentDashboard() {
           role_in_tuition: 'student',
         });
 
-      if (joinError) throw joinError;
+      if (joinError) {
+        // Check for duplicate key error (already a member)
+        if (joinError.code === '23505' || joinError.message?.includes('duplicate')) {
+          toast.error('You are already a member of this tuition');
+          return;
+        }
+        throw joinError;
+      }
 
       // Refresh tuitions list
-      const { data } = await supabase
+      const { data: tuitionsData } = await supabase
         .from('tuition_members')
         .select('tuition_spaces (id, name, created_at)')
         .eq('user_id', userId)
         .eq('role_in_tuition', 'student');
 
-      if (data) {
-        setJoinedTuitions(data.map(m => m.tuition_spaces).filter(Boolean));
+      if (tuitionsData) {
+        setJoinedTuitions(tuitionsData.map(m => m.tuition_spaces).filter(Boolean));
       }
 
-      setMessage(`Successfully joined "${tuition.name}"!`);
-      setMessageType('success');
-      setTuitionId('');
+      toast.success('Joined tuition successfully');
+      reset();
       setShowJoinModal(false);
     } catch (err) {
-      setMessage(err.message || 'Failed to join tuition.');
-      setMessageType('error');
+      console.error('Join tuition error:', err);
+      toast.error('Failed to join tuition');
     } finally {
       setLoading(false);
       setJoining(false);
@@ -383,7 +406,7 @@ function StudentDashboard() {
               <h2 className="text-lg font-bold text-slate-900">Join a Tuition</h2>
               <button
                 type="button"
-                onClick={() => { setShowJoinModal(false); setTuitionId(''); setError(null); }}
+                onClick={() => { setShowJoinModal(false); reset(); }}
                 className="w-8 h-8 rounded-full flex items-center justify-center hover:bg-slate-200 text-slate-500 transition-colors"
               >
                 <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -393,51 +416,48 @@ function StudentDashboard() {
             </div>
 
             <div className="p-6">
-              <form onSubmit={handleJoinTuition} className="space-y-5">
+              <form onSubmit={handleSubmit(handleJoinTuition)} className="space-y-5">
                 <div>
                   <label className="block text-sm font-semibold text-slate-700 mb-1.5">
                     Join Code <span className="text-red-500">*</span>
                   </label>
                   <input
                     type="text"
-                    value={tuitionId}
-                    onChange={(e) => setTuitionId(e.target.value.toUpperCase())}
+                    {...register('joinCode')}
+                    value={watch('joinCode') || ''}
+                    onChange={(e) => {
+                      const value = e.target.value.toUpperCase().slice(0, 6);
+                      setValue('joinCode', value, { shouldValidate: true });
+                    }}
                     placeholder="Enter the code provided by your teacher"
-                    required
-                    maxLength={8}
+                    maxLength={6}
                     className="w-full px-4 py-3 bg-slate-50 border border-slate-200 text-slate-900 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-colors uppercase placeholder:normal-case font-mono tracking-wider font-semibold"
                   />
+                  {errors.joinCode && (
+                    <p className="mt-1 text-sm text-red-500">{errors.joinCode.message}</p>
+                  )}
                   <p className="text-xs text-slate-500 mt-2 flex items-center gap-1.5">
                     <svg className="w-4 h-4 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                     </svg>
-                    A 6-8 character code like 'MATH10' or 'A1B2C3'.
+                    A 6 character code like 'MATH10' or 'A1B2C3'.
                   </p>
                 </div>
-
-                {error && (
-                  <div className="p-3 bg-red-50 text-red-700 text-sm rounded-lg flex items-start gap-2 border border-red-100">
-                    <svg className="w-5 h-5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
-                    </svg>
-                    {error}
-                  </div>
-                )}
 
                 <div className="flex justify-end gap-3 pt-2">
                   <button
                     type="button"
-                    onClick={() => { setShowJoinModal(false); setTuitionId(''); setError(null); }}
+                    onClick={() => { setShowJoinModal(false); reset(); }}
                     className="px-5 py-2.5 text-sm font-bold text-slate-600 hover:bg-slate-100 rounded-xl transition-colors"
                   >
                     Cancel
                   </button>
                   <button
                     type="submit"
-                    disabled={joining || !tuitionId.trim()}
+                    disabled={loading}
                     className="px-6 py-2.5 text-sm font-bold text-white bg-indigo-600 shadow-sm rounded-xl hover:bg-indigo-700 transition-all hover:shadow hover:-translate-y-0.5 disabled:opacity-50 disabled:pointer-events-none flex items-center gap-2"
                   >
-                    {joining ? (
+                    {loading ? (
                       <>
                         <svg className="animate-spin -ml-1 mr-2 h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
                           <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>

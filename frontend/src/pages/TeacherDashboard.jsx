@@ -1,7 +1,11 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import toast from 'react-hot-toast';
 import DashboardLayout from '../components/dashboard/DashboardLayout';
 import { supabase } from '../lib/supabase';
+import { tuitionSchema } from '../schemas/tuition.schema';
 
 const SUBJECTS = ['Mathematics', 'Physics', 'Chemistry', 'Biology'];
 const GRADES = ['Grade 9', 'Grade 10', 'Grade 11', 'Grade 12', 'JEE', 'NEET'];
@@ -21,23 +25,32 @@ function TeacherDashboard() {
   const [tuitions, setTuitions] = useState([]);
   const [showModal, setShowModal] = useState(false);
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState('');
   const [userId, setUserId] = useState(null);
 
-  // Form state
-  const [tuitionName, setTuitionName] = useState('');
-  const [subject, setSubject] = useState('');
-  const [grade, setGrade] = useState('');
-  const [batch, setBatch] = useState('');
-  const [description, setDescription] = useState('');
+  const {
+    register,
+    handleSubmit,
+    reset,
+    formState: { errors },
+  } = useForm({
+    resolver: zodResolver(tuitionSchema),
+    defaultValues: {
+      tuitionName: '',
+      subject: '',
+      grade: '',
+      batch: '',
+      description: '',
+    },
+  });
 
   const resetForm = () => {
-    setTuitionName('');
-    setSubject('');
-    setGrade('');
-    setBatch('');
-    setDescription('');
-    setError('');
+    reset({
+      tuitionName: '',
+      subject: '',
+      grade: '',
+      batch: '',
+      description: '',
+    });
   };
 
   // Fetch current user and their tuitions
@@ -60,12 +73,10 @@ function TeacherDashboard() {
     getUserAndTuitions();
   }, []);
 
-  const handleCreateTuition = async (e) => {
-    e.preventDefault();
-    if (!tuitionName.trim() || !userId) return;
+  const handleCreateTuition = async (data) => {
+    if (!userId) return;
 
     setLoading(true);
-    setError('');
 
     try {
       // Generate a random 6-character join code
@@ -75,13 +86,13 @@ function TeacherDashboard() {
       const { data: tuition, error: tuitionError } = await supabase
         .from('tuition_spaces')
         .insert({
-          name: tuitionName,
+          name: data.tuitionName,
           created_by: userId,
           join_code: joinCode,
-          subject: subject || null,
-          grade: grade || null,
-          batch: batch || null,
-          description: description || null,
+          subject: data.subject || null,
+          grade: data.grade || null,
+          batch: data.batch || null,
+          description: data.description || null,
         })
         .select()
         .single();
@@ -103,8 +114,9 @@ function TeacherDashboard() {
       setTuitions([tuition, ...tuitions]);
       resetForm();
       setShowModal(false);
+      toast.success('Tuition created successfully');
     } catch (err) {
-      setError(err.message);
+      toast.error('Failed to create tuition');
     } finally {
       setLoading(false);
     }
@@ -337,7 +349,7 @@ function TeacherDashboard() {
             </div>
 
             <div className="p-6">
-              <form onSubmit={handleCreateTuition} className="space-y-5">
+              <form onSubmit={handleSubmit(handleCreateTuition)} className="space-y-5">
                 {/* Tuition Name */}
                 <div>
                   <label className="block text-sm font-semibold text-slate-700 mb-1.5">
@@ -345,12 +357,13 @@ function TeacherDashboard() {
                   </label>
                   <input
                     type="text"
-                    value={tuitionName}
-                    onChange={(e) => setTuitionName(e.target.value)}
+                    {...register('tuitionName')}
                     placeholder="e.g., Math Grade 10 Morning Batch"
-                    required
                     className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 text-slate-900 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-colors placeholder:text-slate-400"
                   />
+                  {errors.tuitionName && (
+                    <p className="mt-1 text-sm text-red-500">{errors.tuitionName.message}</p>
+                  )}
                 </div>
 
                 {/* Subject & Grade Grid */}
@@ -358,8 +371,7 @@ function TeacherDashboard() {
                   <div>
                     <label className="block text-sm font-semibold text-slate-700 mb-1.5">Subject</label>
                     <select
-                      value={subject}
-                      onChange={(e) => setSubject(e.target.value)}
+                      {...register('subject')}
                       className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 text-slate-900 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-colors appearance-none"
                     >
                       <option value="">Select subject</option>
@@ -367,12 +379,14 @@ function TeacherDashboard() {
                         <option key={s} value={s}>{s}</option>
                       ))}
                     </select>
+                    {errors.subject && (
+                      <p className="mt-1 text-sm text-red-500">{errors.subject.message}</p>
+                    )}
                   </div>
                   <div>
                     <label className="block text-sm font-semibold text-slate-700 mb-1.5">Grade</label>
                     <select
-                      value={grade}
-                      onChange={(e) => setGrade(e.target.value)}
+                      {...register('grade')}
                       className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 text-slate-900 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-colors appearance-none"
                     >
                       <option value="">Select grade</option>
@@ -380,6 +394,9 @@ function TeacherDashboard() {
                         <option key={g} value={g}>{g}</option>
                       ))}
                     </select>
+                    {errors.grade && (
+                      <p className="mt-1 text-sm text-red-500">{errors.grade.message}</p>
+                    )}
                   </div>
                 </div>
 
@@ -387,8 +404,7 @@ function TeacherDashboard() {
                 <div>
                   <label className="block text-sm font-semibold text-slate-700 mb-1.5">Batch</label>
                   <select
-                    value={batch}
-                    onChange={(e) => setBatch(e.target.value)}
+                    {...register('batch')}
                     className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 text-slate-900 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-colors appearance-none"
                   >
                     <option value="">Select batch</option>
@@ -396,28 +412,24 @@ function TeacherDashboard() {
                       <option key={b} value={b}>{b}</option>
                     ))}
                   </select>
+                  {errors.batch && (
+                    <p className="mt-1 text-sm text-red-500">{errors.batch.message}</p>
+                  )}
                 </div>
 
                 {/* Description */}
                 <div>
                   <label className="block text-sm font-semibold text-slate-700 mb-1.5">Description</label>
                   <textarea
-                    value={description}
-                    onChange={(e) => setDescription(e.target.value)}
+                    {...register('description')}
                     placeholder="Add any notes about this tuition..."
                     rows={3}
                     className="w-full px-4 py-3 bg-slate-50 border border-slate-200 text-slate-900 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-colors resize-none placeholder:text-slate-400"
                   />
+                  {errors.description && (
+                    <p className="mt-1 text-sm text-red-500">{errors.description.message}</p>
+                  )}
                 </div>
-
-                {error && (
-                  <div className="p-3 bg-red-50 text-red-700 text-sm rounded-lg flex items-start gap-2 border border-red-100">
-                    <svg className="w-5 h-5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
-                    </svg>
-                    {error}
-                  </div>
-                )}
 
                 <div className="flex justify-end gap-3 pt-2">
                   <button
@@ -429,7 +441,7 @@ function TeacherDashboard() {
                   </button>
                   <button
                     type="submit"
-                    disabled={loading || !tuitionName.trim()}
+                    disabled={loading}
                     className="px-6 py-2.5 text-sm font-bold text-white bg-blue-600 shadow-sm rounded-xl hover:bg-blue-700 transition-all hover:shadow hover:-translate-y-0.5 disabled:opacity-50 disabled:pointer-events-none"
                   >
                     {loading ? 'Creating...' : 'Create Tuition'}

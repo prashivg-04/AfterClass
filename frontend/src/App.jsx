@@ -3,6 +3,7 @@ import { useSelector } from 'react-redux';
 import { PublicRoute } from './components/PublicRoute';
 import { PrivateRoute } from './components/PrivateRoute';
 import { RoleRoute } from './components/RoleRoute';
+import { Toaster } from 'react-hot-toast';
 import Home from './pages/Home';
 import Login from './pages/Login';
 import Signup from './pages/Signup';
@@ -25,6 +26,7 @@ function App() {
 
   return (
     <BrowserRouter>
+      <Toaster position="top-right" />
       <Routes>
         <Route path="/" element={<Home />} />
         <Route path="/login" element={<PublicRoute><Login /></PublicRoute>} />
