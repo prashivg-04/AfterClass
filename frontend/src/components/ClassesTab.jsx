@@ -1,61 +1,87 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import toast from 'react-hot-toast';
 import { supabase } from '../lib/supabase';
+import { classSchema } from '../schemas/class.schema';
 
 const TOPIC_OPTIONS = ['Algebra', 'Trigonometry', 'Probability', 'Geometry', 'Statistics'];
 
 function ClassesTab({ classes, setClasses, tuitionId, isTeacher }) {
   const navigate = useNavigate();
-  const [className, setClassName] = useState('');
-  const [selectedTopics, setSelectedTopics] = useState([]);
-  const [classDate, setClassDate] = useState(new Date().toISOString().split('T')[0]);
-  const [notes, setNotes] = useState('');
   const [saving, setSaving] = useState(false);
   const [showModal, setShowModal] = useState(false);
   const [isTopicDropdownOpen, setIsTopicDropdownOpen] = useState(false);
 
+  const {
+    register,
+    handleSubmit,
+    reset,
+    setValue,
+    watch,
+    formState: { errors },
+  } = useForm({
+    resolver: zodResolver(classSchema),
+    defaultValues: {
+      className: '',
+      topics: [],
+      classDate: new Date().toISOString().split('T')[0],
+      summary: '',
+    },
+  });
+
+  const selectedTopics = watch('topics') || [];
+
   const handleTopicToggle = (topic) => {
-    setSelectedTopics(prev =>
-      prev.includes(topic)
-        ? prev.filter(t => t !== topic)
-        : [...prev, topic]
-    );
+    const currentTopics = selectedTopics;
+    if (currentTopics.includes(topic)) {
+      setValue('topics', currentTopics.filter(t => t !== topic), { shouldValidate: true });
+    } else {
+      setValue('topics', [...currentTopics, topic], { shouldValidate: true });
+    }
   };
 
   const removeTopic = (topicToRemove) => {
-    setSelectedTopics(prev => prev.filter(t => t !== topicToRemove));
+    setValue('topics', selectedTopics.filter(t => t !== topicToRemove), { shouldValidate: true });
   };
 
   const resetForm = () => {
-    setClassName('');
-    setSelectedTopics([]);
-    setClassDate(new Date().toISOString().split('T')[0]);
-    setNotes('');
+    reset({
+      className: '',
+      topics: [],
+      classDate: new Date().toISOString().split('T')[0],
+      summary: '',
+    });
     setIsTopicDropdownOpen(false);
   };
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    if (!className.trim() || selectedTopics.length === 0) return;
-
+  const handleCreateClass = async (data) => {
     setSaving(true);
-    const { data, error } = await supabase
+    const { data: classData, error } = await supabase
       .from('classes')
       .insert({
         tuition_id: tuitionId,
-        name: className.trim(),
-        topics: selectedTopics,
-        class_date: classDate || null,
-        summary: notes.trim() || null,
+        name: data.className.trim(),
+        topics: data.topics,
+        class_date: data.classDate || null,
+        summary: data.summary?.trim() || null,
       })
       .select()
       .single();
 
-    if (!error && data) {
-      setClasses([data, ...classes]);
+    if (error) {
+      toast.error('Failed to create class');
+      setSaving(false);
+      return;
+    }
+
+    if (classData) {
+      setClasses([classData, ...classes]);
       resetForm();
       setShowModal(false);
-      navigate(`class/${data.id}`);
+      toast.success('Class created successfully');
+      navigate(`class/${classData.id}`);
     }
     setSaving(false);
   };
@@ -152,16 +178,18 @@ function ClassesTab({ classes, setClasses, tuitionId, isTeacher }) {
               </button>
             </div>
 
-            <form onSubmit={handleSubmit} className="p-6 space-y-5">
+            <form onSubmit={handleSubmit(handleCreateClass)} className="p-6 space-y-5">
               <div>
                 <label className="block text-sm font-medium text-slate-700 mb-1.5">Class Title</label>
                 <input
                   type="text"
-                  value={className}
-                  onChange={(e) => setClassName(e.target.value)}
+                  {...register('className')}
                   placeholder="e.g., Chapter 1: Introduction to Algebra"
                   className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 focus:bg-white transition-all text-sm"
                 />
+                {errors.className && (
+                  <p className="mt-1 text-sm text-red-500">{errors.className.message}</p>
+                )}
               </div>
 
               <div>
@@ -223,6 +251,9 @@ function ClassesTab({ classes, setClasses, tuitionId, isTeacher }) {
                     </div>
                   )}
                 </div>
+                {errors.topics && (
+                  <p className="mt-1 text-sm text-red-500">{errors.topics.message}</p>
+                )}
               </div>
 
               <div className="grid grid-cols-2 gap-4">
@@ -230,22 +261,26 @@ function ClassesTab({ classes, setClasses, tuitionId, isTeacher }) {
                   <label className="block text-sm font-medium text-slate-700 mb-1.5">Date of Class</label>
                   <input
                     type="date"
-                    value={classDate}
-                    onChange={(e) => setClassDate(e.target.value)}
+                    {...register('classDate')}
                     className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 focus:bg-white transition-all text-sm"
                   />
+                  {errors.classDate && (
+                    <p className="mt-1 text-sm text-red-500">{errors.classDate.message}</p>
+                  )}
                 </div>
               </div>
 
               <div>
                 <label className="block text-sm font-medium text-slate-700 mb-1.5">Class Summary (Optional)</label>
                 <textarea
-                  value={notes}
-                  onChange={(e) => setNotes(e.target.value)}
+                  {...register('summary')}
                   placeholder="What will be covered in this class?"
                   rows={3}
                   className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 focus:bg-white transition-all text-sm resize-none"
                 />
+                {errors.summary && (
+                  <p className="mt-1 text-sm text-red-500">{errors.summary.message}</p>
+                )}
               </div>
 
               <div className="flex items-center justify-end gap-3 pt-2 border-t border-slate-100">
@@ -258,7 +293,7 @@ function ClassesTab({ classes, setClasses, tuitionId, isTeacher }) {
                 </button>
                 <button
                   type="submit"
-                  disabled={saving || !className.trim() || selectedTopics.length === 0}
+                  disabled={saving}
                   className="px-5 py-2.5 text-sm font-medium bg-blue-600 text-white rounded-xl hover:bg-blue-700 focus:ring-4 focus:ring-blue-500/20 disabled:opacity-50 disabled:cursor-not-allowed transition-all shadow-sm flex items-center gap-2"
                 >
                   {saving && (
