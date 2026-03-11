@@ -9,6 +9,7 @@ import { supabase } from '../lib/supabase';
 import { joinSchema } from '../schemas/join.schema';
 
 function StudentDashboard() {
+
   const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState('');
@@ -416,7 +417,7 @@ function StudentDashboard() {
             </div>
 
             <div className="p-6">
-              <form onSubmit={handleSubmit(handleJoinTuition)} className="space-y-5">
+              <form onSubmit={handleSubmit(handleJoinTuition)} className="space-y-5" noValidate>
                 <div>
                   <label className="block text-sm font-semibold text-slate-700 mb-1.5">
                     Join Code <span className="text-red-500">*</span>
@@ -431,10 +432,19 @@ function StudentDashboard() {
                     }}
                     placeholder="Enter the code provided by your teacher"
                     maxLength={6}
-                    className="w-full px-4 py-3 bg-slate-50 border border-slate-200 text-slate-900 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-colors uppercase placeholder:normal-case font-mono tracking-wider font-semibold"
+                    className={`w-full px-4 py-3 bg-slate-50 border text-slate-900 rounded-xl focus:outline-none focus:ring-2 transition-all duration-200 uppercase placeholder:normal-case font-mono tracking-wider font-semibold ${errors.joinCode
+                      ? 'border-red-300 focus:ring-red-500/20 focus:border-red-500 text-red-900 placeholder:text-red-300'
+                      : 'border-slate-200 focus:ring-indigo-500/20 focus:border-indigo-500 placeholder:text-slate-400'
+                      }`}
+                    aria-invalid={errors.joinCode ? "true" : "false"}
                   />
                   {errors.joinCode && (
-                    <p className="mt-1 text-sm text-red-500">{errors.joinCode.message}</p>
+                    <p className="mt-1.5 text-sm text-red-500 font-medium animate-in slide-in-from-top-1 fade-in duration-200 flex items-center gap-1.5">
+                      <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                      </svg>
+                      {errors.joinCode.message}
+                    </p>
                   )}
                   <p className="text-xs text-slate-500 mt-2 flex items-center gap-1.5">
                     <svg className="w-4 h-4 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">

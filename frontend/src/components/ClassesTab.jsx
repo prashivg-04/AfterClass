@@ -178,17 +178,26 @@ function ClassesTab({ classes, setClasses, tuitionId, isTeacher }) {
               </button>
             </div>
 
-            <form onSubmit={handleSubmit(handleCreateClass)} className="p-6 space-y-5">
+            <form onSubmit={handleSubmit(handleCreateClass)} className="p-6 space-y-5" noValidate>
               <div>
                 <label className="block text-sm font-medium text-slate-700 mb-1.5">Class Title</label>
                 <input
                   type="text"
                   {...register('className')}
                   placeholder="e.g., Chapter 1: Introduction to Algebra"
-                  className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 focus:bg-white transition-all text-sm"
+                  className={`w-full px-4 py-2.5 bg-slate-50 border text-slate-900 rounded-xl focus:outline-none focus:ring-2 transition-all duration-200 text-sm placeholder:text-slate-400 ${errors.className
+                    ? 'border-red-300 focus:ring-red-500/20 focus:border-red-500 text-red-900 placeholder:text-red-300'
+                    : 'border-slate-200 focus:ring-blue-500/20 focus:border-blue-500'
+                    }`}
+                  aria-invalid={errors.className ? "true" : "false"}
                 />
                 {errors.className && (
-                  <p className="mt-1 text-sm text-red-500">{errors.className.message}</p>
+                  <p className="mt-1.5 text-sm text-red-500 font-medium animate-in slide-in-from-top-1 fade-in duration-200 flex items-center gap-1.5">
+                    <svg className="w-4 h-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                    </svg>
+                    <span>{errors.className.message}</span>
+                  </p>
                 )}
               </div>
 
@@ -252,7 +261,12 @@ function ClassesTab({ classes, setClasses, tuitionId, isTeacher }) {
                   )}
                 </div>
                 {errors.topics && (
-                  <p className="mt-1 text-sm text-red-500">{errors.topics.message}</p>
+                  <p className="mt-1.5 text-sm text-red-500 font-medium animate-in slide-in-from-top-1 fade-in duration-200 flex items-center gap-1.5">
+                    <svg className="w-4 h-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                    </svg>
+                    <span>{errors.topics.message}</span>
+                  </p>
                 )}
               </div>
 
@@ -262,10 +276,19 @@ function ClassesTab({ classes, setClasses, tuitionId, isTeacher }) {
                   <input
                     type="date"
                     {...register('classDate')}
-                    className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 focus:bg-white transition-all text-sm"
+                    className={`w-full px-4 py-2.5 bg-slate-50 border text-slate-900 rounded-xl focus:outline-none focus:ring-2 transition-all duration-200 text-sm ${errors.classDate
+                      ? 'border-red-300 focus:ring-red-500/20 focus:border-red-500 text-red-900'
+                      : 'border-slate-200 focus:ring-blue-500/20 focus:border-blue-500'
+                      }`}
+                    aria-invalid={errors.classDate ? "true" : "false"}
                   />
                   {errors.classDate && (
-                    <p className="mt-1 text-sm text-red-500">{errors.classDate.message}</p>
+                    <p className="mt-1.5 text-sm text-red-500 font-medium animate-in slide-in-from-top-1 fade-in duration-200 flex items-center gap-1.5">
+                      <svg className="w-4 h-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                      </svg>
+                      <span>{errors.classDate.message}</span>
+                    </p>
                   )}
                 </div>
               </div>
@@ -276,10 +299,19 @@ function ClassesTab({ classes, setClasses, tuitionId, isTeacher }) {
                   {...register('summary')}
                   placeholder="What will be covered in this class?"
                   rows={3}
-                  className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 focus:bg-white transition-all text-sm resize-none"
+                  className={`w-full px-4 py-2.5 bg-slate-50 border text-slate-900 rounded-xl focus:outline-none focus:ring-2 transition-all duration-200 text-sm resize-none placeholder:text-slate-400 ${errors.summary
+                    ? 'border-red-300 focus:ring-red-500/20 focus:border-red-500 text-red-900 placeholder:text-red-300'
+                    : 'border-slate-200 focus:ring-blue-500/20 focus:border-blue-500'
+                    }`}
+                  aria-invalid={errors.summary ? "true" : "false"}
                 />
                 {errors.summary && (
-                  <p className="mt-1 text-sm text-red-500">{errors.summary.message}</p>
+                  <p className="mt-1.5 text-sm text-red-500 font-medium animate-in slide-in-from-top-1 fade-in duration-200 flex items-center gap-1.5">
+                    <svg className="w-4 h-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                    </svg>
+                    <span>{errors.summary.message}</span>
+                  </p>
                 )}
               </div>
 

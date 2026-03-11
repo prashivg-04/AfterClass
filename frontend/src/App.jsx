@@ -12,6 +12,7 @@ import TeacherDashboard from './pages/TeacherDashboard';
 import StudentDashboard from './pages/StudentDashboard';
 import TuitionDetail from './pages/TuitionDetail';
 import ClassDetail from './pages/ClassDetail';
+import NotFound from './pages/NotFound';
 
 function App() {
   const { loading } = useSelector((state) => state.auth);
@@ -26,7 +27,41 @@ function App() {
 
   return (
     <BrowserRouter>
-      <Toaster position="top-right" />
+      <Toaster
+        position="top-right"
+        toastOptions={{
+          duration: 4000,
+          className: 'text-sm font-medium shadow-lg rounded-xl',
+          style: {
+            padding: '16px',
+            color: '#1e293b',
+            background: '#ffffff',
+            border: '1px solid #e2e8f0',
+          },
+          success: {
+            iconTheme: {
+              primary: '#10b981',
+              secondary: '#ffffff',
+            },
+            style: {
+              background: '#f0fdf4',
+              borderColor: '#bbf7d0',
+              color: '#166534',
+            },
+          },
+          error: {
+            iconTheme: {
+              primary: '#ef4444',
+              secondary: '#ffffff',
+            },
+            style: {
+              background: '#fef2f2',
+              borderColor: '#fecaca',
+              color: '#991b1b',
+            },
+          },
+        }}
+      />
       <Routes>
         <Route path="/" element={<Home />} />
         <Route path="/login" element={<PublicRoute><Login /></PublicRoute>} />
@@ -66,6 +101,7 @@ function App() {
             <ClassDetail role="Student" />
           </RoleRoute>
         } />
+        <Route path="*" element={<NotFound />} />
       </Routes>
     </BrowserRouter>
   );

@@ -1,47 +1,51 @@
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import toast from 'react-hot-toast';
 import AuthLayout from '../components/auth/AuthLayout';
 import { supabase } from '../lib/supabase';
+import { loginSchema } from '../schemas/login.schema';
+import { handleError } from '../utilities/errorHandler';
 
 export default function Login() {
   const navigate = useNavigate();
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    setError('');
+  const {
+    register,
+    handleSubmit,
+    setError,
+    formState: { errors },
+  } = useForm({
+    resolver: zodResolver(loginSchema),
+  });
 
-    if (!email || !password) {
-      setError('Please enter both email and password.');
-      return;
-    }
-
+  const onSubmit = async (data) => {
     setLoading(true);
     try {
-      const { data, error: signInError } = await supabase.auth.signInWithPassword({
-        email,
-        password,
+      const { data: authData, error: signInError } = await supabase.auth.signInWithPassword({
+        email: data.email,
+        password: data.password,
       });
 
       if (signInError) {
-        // Handle specific error messages
         if (signInError.message.includes('Invalid login credentials')) {
-          throw new Error('Invalid email or password. Please try again.');
-        }
-        if (signInError.message.includes('Email not confirmed')) {
-          throw new Error('Please verify your email address before logging in.');
+          setError('password', {
+            type: 'manual',
+            message: 'Invalid email or password',
+          });
         }
         throw signInError;
       }
 
-      if (!data?.user) {
+      const user = authData?.user;
+
+      if (!user) {
         throw new Error('Login failed. Please try again.');
       }
 
-      const user = data.user;
+      toast.success('Logged in successfully');
 
       // Check if user already has a role in profiles table
       const { data: profile, error: profileError } = await supabase
@@ -64,7 +68,7 @@ export default function Login() {
       }
 
     } catch (err) {
-      setError(err.message || 'Invalid login credentials.');
+      handleError(err, 'Failed to log in');
     } finally {
       setLoading(false);
     }
@@ -72,12 +76,7 @@ export default function Login() {
 
   return (
     <AuthLayout title="Welcome back">
-      <form onSubmit={handleSubmit} className="space-y-5">
-        {error && (
-          <div className="p-3 text-sm text-red-600 bg-red-50 border border-red-200 rounded-lg">
-            {error}
-          </div>
-        )}
+      <form onSubmit={handleSubmit(onSubmit)} className="space-y-5" noValidate>
         <div>
           <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-1.5">
             Email
@@ -85,12 +84,22 @@ export default function Login() {
           <input
             id="email"
             type="email"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            required
+            {...register('email')}
             placeholder="you@example.com"
-            className="w-full px-3.5 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
+            className={`w-full px-3.5 py-2.5 border rounded-lg focus:outline-none focus:ring-2 focus:border-transparent transition-all duration-200 ${errors.email
+              ? 'border-red-300 focus:ring-red-500/20 text-red-900 placeholder-red-300'
+              : 'border-slate-300 focus:ring-blue-500/20 focus:border-blue-600'
+              }`}
+            aria-invalid={errors.email ? "true" : "false"}
           />
+          {errors.email && (
+            <p className="mt-1.5 text-sm text-red-500 font-medium animate-in slide-in-from-top-1 fade-in duration-200 flex items-center gap-1.5">
+              <svg className="w-4 h-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+              </svg>
+              <span>{errors.email.message}</span>
+            </p>
+          )}
         </div>
 
         <div>
@@ -100,20 +109,30 @@ export default function Login() {
           <input
             id="password"
             type="password"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            required
+            {...register('password')}
             placeholder="••••••••"
-            className="w-full px-3.5 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
+            className={`w-full px-3.5 py-2.5 border rounded-lg focus:outline-none focus:ring-2 focus:border-transparent transition-all duration-200 ${errors.password
+              ? 'border-red-300 focus:ring-red-500/20 text-red-900 placeholder-red-300'
+              : 'border-slate-300 focus:ring-blue-500/20 focus:border-blue-600'
+              }`}
+            aria-invalid={errors.password ? "true" : "false"}
           />
+          {errors.password && (
+            <p className="mt-1.5 text-sm text-red-500 font-medium animate-in slide-in-from-top-1 fade-in duration-200 flex items-center gap-1.5">
+              <svg className="w-4 h-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+              </svg>
+              <span>{errors.password.message}</span>
+            </p>
+          )}
         </div>
 
         <button
           type="submit"
-          disabled={loading || !email || !password}
+          disabled={loading}
           className={`
             w-full py-2.5 px-4 rounded-lg font-medium transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2
-            ${loading || !email || !password
+            ${loading
               ? 'bg-blue-300 text-white cursor-not-allowed'
               : 'bg-blue-600 text-white hover:bg-blue-700'
             }

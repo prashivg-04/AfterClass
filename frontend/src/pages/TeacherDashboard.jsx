@@ -349,7 +349,7 @@ function TeacherDashboard() {
             </div>
 
             <div className="p-6">
-              <form onSubmit={handleSubmit(handleCreateTuition)} className="space-y-5">
+              <form onSubmit={handleSubmit(handleCreateTuition)} className="space-y-5" noValidate>
                 {/* Tuition Name */}
                 <div>
                   <label className="block text-sm font-semibold text-slate-700 mb-1.5">
@@ -359,10 +359,19 @@ function TeacherDashboard() {
                     type="text"
                     {...register('tuitionName')}
                     placeholder="e.g., Math Grade 10 Morning Batch"
-                    className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 text-slate-900 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-colors placeholder:text-slate-400"
+                    className={`w-full px-4 py-2.5 bg-slate-50 border text-slate-900 rounded-xl focus:outline-none focus:ring-2 transition-all duration-200 placeholder:text-slate-400 ${errors.tuitionName
+                      ? 'border-red-300 focus:ring-red-500/20 focus:border-red-500 text-red-900 placeholder:text-red-300'
+                      : 'border-slate-200 focus:ring-blue-500/20 focus:border-blue-500'
+                      }`}
+                    aria-invalid={errors.tuitionName ? "true" : "false"}
                   />
                   {errors.tuitionName && (
-                    <p className="mt-1 text-sm text-red-500">{errors.tuitionName.message}</p>
+                    <p className="mt-1.5 text-sm text-red-500 font-medium animate-in slide-in-from-top-1 fade-in duration-200 flex items-center gap-1.5">
+                      <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                      </svg>
+                      {errors.tuitionName.message}
+                    </p>
                   )}
                 </div>
 
@@ -372,7 +381,11 @@ function TeacherDashboard() {
                     <label className="block text-sm font-semibold text-slate-700 mb-1.5">Subject</label>
                     <select
                       {...register('subject')}
-                      className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 text-slate-900 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-colors appearance-none"
+                      className={`w-full px-4 py-2.5 bg-slate-50 border text-slate-900 rounded-xl focus:outline-none focus:ring-2 transition-all duration-200 appearance-none ${errors.subject
+                        ? 'border-red-300 focus:ring-red-500/20 focus:border-red-500 text-red-900'
+                        : 'border-slate-200 focus:ring-blue-500/20 focus:border-blue-500'
+                        }`}
+                      aria-invalid={errors.subject ? "true" : "false"}
                     >
                       <option value="">Select subject</option>
                       {SUBJECTS.map((s) => (
@@ -380,14 +393,23 @@ function TeacherDashboard() {
                       ))}
                     </select>
                     {errors.subject && (
-                      <p className="mt-1 text-sm text-red-500">{errors.subject.message}</p>
+                      <p className="mt-1.5 text-sm text-red-500 font-medium animate-in slide-in-from-top-1 fade-in duration-200 flex items-center gap-1.5">
+                        <svg className="w-4 h-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                        </svg>
+                        <span>{errors.subject.message}</span>
+                      </p>
                     )}
                   </div>
                   <div>
                     <label className="block text-sm font-semibold text-slate-700 mb-1.5">Grade</label>
                     <select
                       {...register('grade')}
-                      className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 text-slate-900 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-colors appearance-none"
+                      className={`w-full px-4 py-2.5 bg-slate-50 border text-slate-900 rounded-xl focus:outline-none focus:ring-2 transition-all duration-200 appearance-none ${errors.grade
+                        ? 'border-red-300 focus:ring-red-500/20 focus:border-red-500 text-red-900'
+                        : 'border-slate-200 focus:ring-blue-500/20 focus:border-blue-500'
+                        }`}
+                      aria-invalid={errors.grade ? "true" : "false"}
                     >
                       <option value="">Select grade</option>
                       {GRADES.map((g) => (
@@ -395,7 +417,12 @@ function TeacherDashboard() {
                       ))}
                     </select>
                     {errors.grade && (
-                      <p className="mt-1 text-sm text-red-500">{errors.grade.message}</p>
+                      <p className="mt-1.5 text-sm text-red-500 font-medium animate-in slide-in-from-top-1 fade-in duration-200 flex items-center gap-1.5">
+                        <svg className="w-4 h-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                        </svg>
+                        <span>{errors.grade.message}</span>
+                      </p>
                     )}
                   </div>
                 </div>
@@ -405,7 +432,11 @@ function TeacherDashboard() {
                   <label className="block text-sm font-semibold text-slate-700 mb-1.5">Batch</label>
                   <select
                     {...register('batch')}
-                    className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 text-slate-900 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-colors appearance-none"
+                    className={`w-full px-4 py-2.5 bg-slate-50 border text-slate-900 rounded-xl focus:outline-none focus:ring-2 transition-all duration-200 appearance-none ${errors.batch
+                      ? 'border-red-300 focus:ring-red-500/20 focus:border-red-500 text-red-900'
+                      : 'border-slate-200 focus:ring-blue-500/20 focus:border-blue-500'
+                      }`}
+                    aria-invalid={errors.batch ? "true" : "false"}
                   >
                     <option value="">Select batch</option>
                     {BATCHES.map((b) => (
@@ -413,7 +444,12 @@ function TeacherDashboard() {
                     ))}
                   </select>
                   {errors.batch && (
-                    <p className="mt-1 text-sm text-red-500">{errors.batch.message}</p>
+                    <p className="mt-1.5 text-sm text-red-500 font-medium animate-in slide-in-from-top-1 fade-in duration-200 flex items-center gap-1.5">
+                      <svg className="w-4 h-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                      </svg>
+                      <span>{errors.batch.message}</span>
+                    </p>
                   )}
                 </div>
 
@@ -424,10 +460,19 @@ function TeacherDashboard() {
                     {...register('description')}
                     placeholder="Add any notes about this tuition..."
                     rows={3}
-                    className="w-full px-4 py-3 bg-slate-50 border border-slate-200 text-slate-900 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-colors resize-none placeholder:text-slate-400"
+                    className={`w-full px-4 py-3 bg-slate-50 border text-slate-900 rounded-xl focus:outline-none focus:ring-2 transition-all duration-200 resize-none placeholder:text-slate-400 ${errors.description
+                      ? 'border-red-300 focus:ring-red-500/20 focus:border-red-500 text-red-900 placeholder:text-red-300'
+                      : 'border-slate-200 focus:ring-blue-500/20 focus:border-blue-500'
+                      }`}
+                    aria-invalid={errors.description ? "true" : "false"}
                   />
                   {errors.description && (
-                    <p className="mt-1 text-sm text-red-500">{errors.description.message}</p>
+                    <p className="mt-1.5 text-sm text-red-500 font-medium animate-in slide-in-from-top-1 fade-in duration-200 flex items-center gap-1.5">
+                      <svg className="w-4 h-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                      </svg>
+                      <span>{errors.description.message}</span>
+                    </p>
                   )}
                 </div>
 
