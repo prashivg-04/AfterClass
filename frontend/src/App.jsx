@@ -12,6 +12,7 @@ import TeacherDashboard from './pages/TeacherDashboard';
 import StudentDashboard from './pages/StudentDashboard';
 import TuitionDetail from './pages/TuitionDetail';
 import ClassDetail from './pages/ClassDetail';
+import Profile from './pages/Profile';
 import NotFound from './pages/NotFound';
 
 function App() {
@@ -100,6 +101,11 @@ function App() {
           <RoleRoute allowedRoles={['student']}>
             <ClassDetail role="Student" />
           </RoleRoute>
+        } />
+        <Route path="/profile" element={
+          <PrivateRoute>
+            <Profile />
+          </PrivateRoute>
         } />
         <Route path="*" element={<NotFound />} />
       </Routes>
