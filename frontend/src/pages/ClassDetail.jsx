@@ -183,7 +183,7 @@ function ClassDetail({ role = 'Teacher' }) {
       case 'resources':
         return <ClassResourcesTab isTeacher={isTeacher} />;
       case 'doubts':
-        return <ClassDoubtsTab isTeacher={isTeacher} />;
+        return <ClassDoubtsTab classId={classId} isTeacher={isTeacher} />;
       case 'quiz':
         return <ClassQuizTab />;
       default:
