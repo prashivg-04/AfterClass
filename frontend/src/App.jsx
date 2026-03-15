@@ -14,6 +14,7 @@ import TuitionDetail from './pages/TuitionDetail';
 import ClassDetail from './pages/ClassDetail';
 import Profile from './pages/Profile';
 import NotFound from './pages/NotFound';
+import Payments from './pages/Payments';
 
 function App() {
   const { loading } = useSelector((state) => state.auth);
@@ -105,6 +106,11 @@ function App() {
         <Route path="/profile" element={
           <PrivateRoute>
             <Profile />
+          </PrivateRoute>
+        } />
+        <Route path="/payments" element={
+          <PrivateRoute>
+            <Payments />
           </PrivateRoute>
         } />
         <Route path="*" element={<NotFound />} />
