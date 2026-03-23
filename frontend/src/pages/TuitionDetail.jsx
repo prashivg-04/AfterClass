@@ -297,7 +297,7 @@ function TuitionDetail({ role = 'Teacher' }) {
           />
         );
       case 'resources':
-        return <ResourcesTab />;
+        return <ResourcesTab tuitionId={tuitionId} isTeacher={isTeacher} />;
       case 'announcements':
         return <AnnouncementsTab tuitionId={tuitionId} isTeacher={isTeacher} />;
       case 'discussion':
