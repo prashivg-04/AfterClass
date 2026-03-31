@@ -303,7 +303,7 @@ function TuitionDetail({ role = 'Teacher' }) {
       case 'discussion':
         return <DiscussionTab />;
       case 'quizzes':
-        return <QuizzesTab />;
+        return <QuizzesTab tuitionId={tuitionId} isTeacher={isTeacher} />;
       default:
         return null;
     }

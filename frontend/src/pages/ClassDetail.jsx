@@ -8,7 +8,6 @@ import {
   ClassAttendanceTab,
   ClassResourcesTab,
   ClassDoubtsTab,
-  ClassQuizTab,
   AttendanceModal,
 } from '../components/class-detail';
 
@@ -184,8 +183,6 @@ function ClassDetail({ role = 'Teacher' }) {
         return <ClassResourcesTab isTeacher={isTeacher} tuitionId={tuitionId} classId={classId} />;
       case 'doubts':
         return <ClassDoubtsTab classId={classId} isTeacher={isTeacher} />;
-      case 'quiz':
-        return <ClassQuizTab />;
       default:
         return (
           <ClassOverviewTab

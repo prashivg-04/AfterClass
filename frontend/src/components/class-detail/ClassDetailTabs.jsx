@@ -5,7 +5,6 @@ const TABS = [
   { id: 'attendance', label: 'Attendance' },
   { id: 'resources', label: 'Resources' },
   { id: 'doubts', label: 'Doubts' },
-  { id: 'quiz', label: 'Quiz' },
 ];
 
 export function ClassDetailTabs({ activeTab, onTabChange }) {
