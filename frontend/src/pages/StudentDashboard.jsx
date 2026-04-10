@@ -7,6 +7,7 @@ import DashboardLayout from '../components/dashboard/DashboardLayout';
 import Rolling365Heatmap from '../components/Rolling365Heatmap';
 import { supabase } from '../lib/supabase';
 import { joinSchema } from '../schemas/join.schema';
+import { handleError } from '../utilities/errorHandler';
 
 function StudentDashboard() {
 
@@ -19,6 +20,12 @@ function StudentDashboard() {
   const [globalAttendance, setGlobalAttendance] = useState([]);
   const [showJoinModal, setShowJoinModal] = useState(false);
   const [joining, setJoining] = useState(false);
+  const [kpiLoading, setKpiLoading] = useState(true);
+  const [kpiData, setKpiData] = useState({
+    attendancePercentage: 0,
+    classesAttended: 0,
+    quizzesAttempted: 0,
+  });
 
   const {
     register,
@@ -96,11 +103,97 @@ function StudentDashboard() {
 
         // Set intensity map for rolling 365-day heatmap
         setGlobalAttendance(dayCount);
+
+        // Fetch KPI data for the student
+        await fetchKpiData(user.id, tuitions);
       }
     };
 
     init();
   }, []);
+
+  // Fetch KPI data: Attendance %, Classes Attended, Quizzes Attempted
+  const fetchKpiData = async (studentId, tuitions) => {
+    setKpiLoading(true);
+
+    try {
+      const tuitionIds = tuitions.map(t => t.id);
+
+      // Default values if no tuitions
+      if (tuitionIds.length === 0) {
+        setKpiData({
+          attendancePercentage: 0,
+          classesAttended: 0,
+          quizzesAttempted: 0,
+        });
+        setKpiLoading(false);
+        return;
+      }
+
+      // Fetch all classes from joined tuitions
+      const { data: classesData, error: classesError } = await supabase
+        .from('classes')
+        .select('id, tuition_id')
+        .in('tuition_id', tuitionIds);
+
+      if (classesError) throw classesError;
+
+      const classIds = classesData?.map(c => c.id) || [];
+
+      // Fetch attendance records for the student
+      let classesAttended = 0;
+      let totalClassesWithAttendance = 0;
+
+      if (classIds.length > 0) {
+        // Get all attendance records for this student in these classes
+        const { data: attendanceData, error: attendanceError } = await supabase
+          .from('class_attendance')
+          .select('class_id, status')
+          .eq('student_id', studentId)
+          .in('class_id', classIds);
+
+        if (attendanceError) throw attendanceError;
+
+        // Count present and total records
+        if (attendanceData) {
+          classesAttended = attendanceData.filter(a => a.status === 'present').length;
+          totalClassesWithAttendance = attendanceData.length;
+        }
+      }
+
+      // Calculate attendance percentage
+      const attendancePercentage = totalClassesWithAttendance > 0
+        ? Math.round((classesAttended / totalClassesWithAttendance) * 100)
+        : 0;
+
+      // Fetch quizzes attempted by the student
+      const { data: quizAttemptsData, error: quizError } = await supabase
+        .from('quiz_attempts')
+        .select('id')
+        .eq('student_id', studentId);
+
+      if (quizError) throw quizError;
+
+      const quizzesAttempted = quizAttemptsData?.length || 0;
+
+      setKpiData({
+        attendancePercentage,
+        classesAttended,
+        quizzesAttempted,
+      });
+    } catch (error) {
+      console.error('KPI data fetch error:', error);
+      handleError(error, 'Failed to load dashboard statistics');
+      // Set fallback values
+      setKpiData({
+        attendancePercentage: '--',
+        classesAttended: '--',
+        quizzesAttempted: '--',
+      });
+    } finally {
+      setKpiLoading(false);
+    }
+  };
 
   const handleJoinTuition = async (data) => {
     // Get authenticated user directly
@@ -315,64 +408,107 @@ function StudentDashboard() {
           </div>
         </div>
 
+        {/* KPI Cards */}
         <div className="grid md:grid-cols-3 gap-6">
+          {/* Attendance % */}
           <div className="bg-white rounded-2xl p-6 border border-slate-200 shadow-sm relative overflow-hidden group hover:border-slate-300 transition-colors">
             <div className="absolute right-0 top-0 w-24 h-24 bg-slate-50 rounded-bl-full -mr-4 -mt-4 transition-transform group-hover:scale-110"></div>
             <div className="relative flex items-center justify-between">
               <div>
-                <p className="text-sm font-medium text-slate-500 mb-1">Assigned Quizzes</p>
-                <p className="text-3xl font-bold text-slate-900">12</p>
+                <p className="text-sm font-medium text-slate-500 mb-1">Attendance</p>
+                <p className="text-3xl font-bold text-slate-900">
+                  {kpiLoading ? (
+                    <span className="inline-block w-12 h-8 bg-slate-200 rounded animate-pulse"></span>
+                  ) : (
+                    `${kpiData.attendancePercentage}${kpiData.attendancePercentage === '--' ? '' : '%'}`
+                  )}
+                </p>
               </div>
               <div className="w-12 h-12 bg-white rounded-xl shadow-sm border border-slate-100 flex items-center justify-center relative z-10 text-slate-500">
+                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" />
+                </svg>
+              </div>
+            </div>
+            <div className="mt-4 flex items-center text-xs font-medium text-emerald-600 bg-emerald-50 px-2.5 py-1 rounded-lg w-fit">
+              {kpiLoading ? (
+                <span className="inline-block w-20 h-4 bg-slate-200 rounded animate-pulse"></span>
+              ) : (
+                <>
+                  <svg className="w-3.5 h-3.5 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                  </svg>
+                  Based on attended classes
+                </>
+              )}
+            </div>
+          </div>
+
+          {/* Classes Attended */}
+          <div className="bg-white rounded-2xl p-6 border border-slate-200 shadow-sm relative overflow-hidden group hover:border-emerald-200 transition-colors">
+            <div className="absolute right-0 top-0 w-24 h-24 bg-emerald-50 rounded-bl-full -mr-4 -mt-4 transition-transform group-hover:scale-110"></div>
+            <div className="relative flex items-center justify-between">
+              <div>
+                <p className="text-sm font-medium text-slate-500 mb-1">Classes Attended</p>
+                <p className="text-3xl font-bold text-slate-900">
+                  {kpiLoading ? (
+                    <span className="inline-block w-12 h-8 bg-slate-200 rounded animate-pulse"></span>
+                  ) : (
+                    kpiData.classesAttended
+                  )}
+                </p>
+              </div>
+              <div className="w-12 h-12 bg-white rounded-xl shadow-sm border border-slate-100 flex items-center justify-center relative z-10 text-emerald-600">
+                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
+                </svg>
+              </div>
+            </div>
+            <div className="mt-4 flex items-center text-xs font-medium text-emerald-600 bg-emerald-50 px-2.5 py-1 rounded-lg w-fit">
+              {kpiLoading ? (
+                <span className="inline-block w-20 h-4 bg-slate-200 rounded animate-pulse"></span>
+              ) : (
+                <>
+                  <svg className="w-3.5 h-3.5 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                  </svg>
+                  Total classes present
+                </>
+              )}
+            </div>
+          </div>
+
+          {/* Quizzes Attempted */}
+          <div className="bg-white rounded-2xl p-6 border border-slate-200 shadow-sm relative overflow-hidden group hover:border-amber-200 transition-colors">
+            <div className="absolute right-0 top-0 w-24 h-24 bg-amber-50 rounded-bl-full -mr-4 -mt-4 transition-transform group-hover:scale-110"></div>
+            <div className="relative flex items-center justify-between">
+              <div>
+                <p className="text-sm font-medium text-slate-500 mb-1">Quizzes Attempted</p>
+                <p className="text-3xl font-bold text-slate-900">
+                  {kpiLoading ? (
+                    <span className="inline-block w-12 h-8 bg-slate-200 rounded animate-pulse"></span>
+                  ) : (
+                    kpiData.quizzesAttempted
+                  )}
+                </p>
+              </div>
+              <div className="w-12 h-12 bg-white rounded-xl shadow-sm border border-slate-100 flex items-center justify-center relative z-10 text-amber-500">
                 <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
                 </svg>
               </div>
             </div>
-            <div className="mt-4 flex items-center text-xs font-medium text-rose-600 bg-rose-50 px-2.5 py-1 rounded-lg w-fit">
-              3 due this week
-            </div>
-          </div>
-
-          <div className="bg-white rounded-2xl p-6 border border-slate-200 shadow-sm relative overflow-hidden group hover:border-emerald-200 transition-colors">
-            <div className="absolute right-0 top-0 w-24 h-24 bg-emerald-50 rounded-bl-full -mr-4 -mt-4 transition-transform group-hover:scale-110"></div>
-            <div className="relative flex items-center justify-between">
-              <div>
-                <p className="text-sm font-medium text-slate-500 mb-1">Completed Quizzes</p>
-                <p className="text-3xl font-bold text-slate-900">8</p>
-              </div>
-              <div className="w-12 h-12 bg-white rounded-xl shadow-sm border border-slate-100 flex items-center justify-center relative z-10 text-emerald-600">
-                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-                </svg>
-              </div>
-            </div>
-            <div className="mt-4 flex items-center text-xs font-medium text-emerald-600 bg-emerald-50 px-2.5 py-1 rounded-lg w-fit">
-              <svg className="w-3.5 h-3.5 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-              </svg>
-              All graded
-            </div>
-          </div>
-
-          <div className="bg-white rounded-2xl p-6 border border-slate-200 shadow-sm relative overflow-hidden group hover:border-amber-200 transition-colors">
-            <div className="absolute right-0 top-0 w-24 h-24 bg-amber-50 rounded-bl-full -mr-4 -mt-4 transition-transform group-hover:scale-110"></div>
-            <div className="relative flex items-center justify-between">
-              <div>
-                <p className="text-sm font-medium text-slate-500 mb-1">Average Score</p>
-                <p className="text-3xl font-bold text-slate-900">86%</p>
-              </div>
-              <div className="w-12 h-12 bg-white rounded-xl shadow-sm border border-slate-100 flex items-center justify-center relative z-10 text-amber-500">
-                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" />
-                </svg>
-              </div>
-            </div>
-            <div className="mt-4 flex items-center text-xs font-medium text-emerald-600 bg-emerald-50 px-2.5 py-1 rounded-lg w-fit">
-              <svg className="w-3.5 h-3.5 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" />
-              </svg>
-              +4% from last month
+            <div className="mt-4 flex items-center text-xs font-medium text-amber-600 bg-amber-50 px-2.5 py-1 rounded-lg w-fit">
+              {kpiLoading ? (
+                <span className="inline-block w-20 h-4 bg-slate-200 rounded animate-pulse"></span>
+              ) : (
+                <>
+                  <svg className="w-3.5 h-3.5 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
+                  </svg>
+                  Total quiz attempts
+                </>
+              )}
             </div>
           </div>
         </div>

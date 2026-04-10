@@ -14,4 +14,6 @@ export { default as QuizAnalytics } from './QuizAnalytics';
 export { default as QuizAttempt } from './QuizAttempt';
 export { default as QuizResult } from './QuizResult';
 export { default as StudentDetailsModal } from './StudentDetailsModal';
+export { default as StudentDetailsDrawer } from './StudentDetailsDrawer';
 export { default as RemoveStudentModal } from './RemoveStudentModal';
+export { default as FeesTab } from './FeesTab';

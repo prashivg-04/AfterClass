@@ -109,9 +109,9 @@ function App() {
           </PrivateRoute>
         } />
         <Route path="/payments" element={
-          <PrivateRoute>
+          <RoleRoute allowedRoles={['teacher', 'student']}>
             <Payments />
-          </PrivateRoute>
+          </RoleRoute>
         } />
         <Route path="*" element={<NotFound />} />
       </Routes>

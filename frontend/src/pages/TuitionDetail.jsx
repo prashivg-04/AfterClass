@@ -13,7 +13,7 @@ import {
   AnnouncementsTab,
   DiscussionTab,
   QuizzesTab,
-  StudentDetailsModal,
+  StudentDetailsDrawer,
   RemoveStudentModal
 } from '../components/tuition-detail';
 
@@ -45,6 +45,15 @@ function TuitionDetail({ role = 'Teacher' }) {
   const [studentJoinedDate, setStudentJoinedDate] = useState(null);
   const [copied, setCopied] = useState(false);
   const [indicatorStyle, setIndicatorStyle] = useState({ left: 0, width: 0 });
+  const [studentKpiData, setStudentKpiData] = useState({
+    attendancePercentage: 0,
+    classesAttended: 0,
+    classesConducted: 0,
+    quizzesAttempted: 0,
+    totalQuizzes: 0,
+    averageQuizScore: 0,
+  });
+  const [kpiLoading, setKpiLoading] = useState(true);
   const tabsRef = useRef([]);
 
   const formatDate = (dateString) => {
@@ -203,8 +212,84 @@ function TuitionDetail({ role = 'Teacher' }) {
         });
 
         setAttendanceData(intensityMap);
+
+        // Calculate KPI data for student
+        setKpiLoading(true);
+        try {
+          // Count classes with attendance records
+          const classesConducted = classIds.length;
+          const classesAttended = Object.values(attendanceMap).filter(s => s === 'present').length;
+          const classesAbsent = Object.values(attendanceMap).filter(s => s === 'absent').length;
+          const totalMarked = classesAttended + classesAbsent;
+
+          const attendancePercentage = totalMarked > 0
+            ? Math.round((classesAttended / totalMarked) * 100)
+            : 0;
+
+          // Fetch all quizzes for this tuition
+          const { data: quizzesData, error: quizzesError } = await supabase
+            .from('quizzes')
+            .select('id')
+            .eq('tuition_id', tuitionId);
+
+          if (quizzesError) throw quizzesError;
+
+          const totalQuizzes = quizzesData?.length || 0;
+          const quizIds = quizzesData?.map(q => q.id) || [];
+
+          // Fetch quiz attempts for this student in these quizzes
+          let quizzesAttempted = 0;
+          let totalScore = 0;
+          let totalQuestions = 0;
+
+          if (quizIds.length > 0) {
+            const { data: quizAttemptsData, error: quizError } = await supabase
+              .from('quiz_attempts')
+              .select('score, total_questions')
+              .eq('student_id', user.id)
+              .in('quiz_id', quizIds);
+
+            if (quizError) throw quizError;
+
+            quizzesAttempted = quizAttemptsData?.length || 0;
+
+            // Calculate average score percentage
+            if (quizAttemptsData && quizAttemptsData.length > 0) {
+              quizAttemptsData.forEach(attempt => {
+                totalScore += attempt.score || 0;
+                totalQuestions += attempt.total_questions || 0;
+              });
+            }
+          }
+
+          const averageQuizScore = quizzesAttempted > 0 && totalQuestions > 0
+            ? Math.round((totalScore / totalQuestions) * 100)
+            : 0;
+
+          setStudentKpiData({
+            attendancePercentage,
+            classesAttended,
+            classesConducted,
+            quizzesAttempted,
+            totalQuizzes,
+            averageQuizScore,
+          });
+        } catch (error) {
+          console.error('KPI calculation error:', error);
+          setStudentKpiData({
+            attendancePercentage: 0,
+            classesAttended: 0,
+            classesConducted: classIds.length,
+            quizzesAttempted: 0,
+            totalQuizzes: 0,
+            averageQuizScore: 0,
+          });
+        } finally {
+          setKpiLoading(false);
+        }
       } else {
         setAttendanceData({});
+        setKpiLoading(false);
       }
 
       setLoading(false);
@@ -275,6 +360,8 @@ function TuitionDetail({ role = 'Teacher' }) {
             attendanceData={attendanceData}
             tuitionCreatedDate={tuitionCreatedDate}
             studentJoinedDate={studentJoinedDate}
+            studentKpiData={studentKpiData}
+            kpiLoading={kpiLoading}
           />
         );
       case 'students':
@@ -301,7 +388,7 @@ function TuitionDetail({ role = 'Teacher' }) {
       case 'announcements':
         return <AnnouncementsTab tuitionId={tuitionId} isTeacher={isTeacher} />;
       case 'discussion':
-        return <DiscussionTab />;
+        return <DiscussionTab tuitionId={tuitionId} isTeacher={isTeacher} />;
       case 'quizzes':
         return <QuizzesTab tuitionId={tuitionId} isTeacher={isTeacher} />;
       default:
@@ -477,8 +564,9 @@ function TuitionDetail({ role = 'Teacher' }) {
           onConfirm={handleConfirmRemove}
         />
 
-        <StudentDetailsModal
+        <StudentDetailsDrawer
           student={selectedStudent}
+          tuitionId={tuitionId}
           onClose={() => setSelectedStudent(null)}
         />
       </div>
