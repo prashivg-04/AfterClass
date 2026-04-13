@@ -630,24 +630,31 @@ function TeacherPaymentsView() {
         </div>
 
         {/* Filters */}
-        <div className="bg-white rounded-xl p-4 border border-slate-200">
-          <div className="flex flex-wrap gap-4">
-            <div className="flex-1 min-w-[200px]">
-              <label className="block text-sm font-medium text-slate-700 mb-1">Search Student</label>
+        <div className="bg-white rounded-2xl p-5 border border-slate-200 shadow-sm flex flex-col md:flex-row md:items-end justify-between gap-5">
+          <div className="flex-1 w-full md:max-w-md relative">
+            <label className="block text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-2">Search Student</label>
+            <div className="relative">
+              <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none">
+                <svg className="w-5 h-5 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
+              </div>
               <input
                 type="text"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 placeholder="Search by name or tuition..."
-                className="w-full px-4 py-2 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500"
+                className="w-full pl-10 pr-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-colors shadow-sm text-sm font-medium placeholder:text-slate-400 placeholder:font-normal"
               />
             </div>
-            <div className="min-w-[150px]">
-              <label className="block text-sm font-medium text-slate-700 mb-1">Filter by Tuition</label>
+          </div>
+
+          <div className="flex flex-col sm:flex-row gap-4 w-full md:w-auto">
+            <div className="min-w-[180px] flex-1 sm:flex-none">
+              <label className="block text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-2">Filter by Tuition</label>
               <select
                 value={tuitionFilter}
                 onChange={(e) => setTuitionFilter(e.target.value)}
-                className="w-full px-4 py-2 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500"
+                className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-colors shadow-sm text-sm appearance-none font-semibold text-slate-700"
+                style={{ backgroundImage: `url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%236b7280' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3e%3c/svg%3e")`, backgroundPosition: 'right 0.75rem center', backgroundRepeat: 'no-repeat', backgroundSize: '1.25em 1.25em', paddingRight: '2.5rem' }}
               >
                 <option value="all">All Tuitions</option>
                 {tuitions.map((t) => (
@@ -657,12 +664,14 @@ function TeacherPaymentsView() {
                 ))}
               </select>
             </div>
-            <div className="min-w-[150px]">
-              <label className="block text-sm font-medium text-slate-700 mb-1">Filter by Status</label>
+            
+            <div className="min-w-[160px] flex-1 sm:flex-none">
+              <label className="block text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-2">Filter by Status</label>
               <select
                 value={statusFilter}
                 onChange={(e) => setStatusFilter(e.target.value)}
-                className="w-full px-4 py-2 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500"
+                className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-colors shadow-sm text-sm appearance-none font-semibold text-slate-700"
+                style={{ backgroundImage: `url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%236b7280' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3e%3c/svg%3e")`, backgroundPosition: 'right 0.75rem center', backgroundRepeat: 'no-repeat', backgroundSize: '1.25em 1.25em', paddingRight: '2.5rem' }}
               >
                 <option value="all">All Status</option>
                 <option value="unpaid">Unpaid</option>
@@ -736,9 +745,6 @@ function TeacherPaymentsView() {
                            <span className="text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-1">Fee Amount</span>
                            <div className="flex items-center gap-2">
                              <span className="font-bold text-slate-900 text-lg">₹{feeAmount}</span>
-                             {fee?.fee_amount && (
-                                <span className="text-[10px] bg-blue-50 text-blue-600 px-1.5 py-0.5 rounded font-bold border border-blue-100">CUSTOM</span>
-                             )}
                            </div>
                         </div>
 

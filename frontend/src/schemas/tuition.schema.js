@@ -13,6 +13,12 @@ export const tuitionSchema = z.object({
   batch: z
     .string()
     .min(1, 'Batch is required'),
+  monthlyFee: z
+    .string()
+    .min(1, 'Monthly fee is required')
+    .refine((val) => !isNaN(parseFloat(val)) && parseFloat(val) > 0, {
+      message: 'Monthly fee must be a positive number',
+    }),
   description: z
     .string()
     .max(300, 'Description must be at most 300 characters')

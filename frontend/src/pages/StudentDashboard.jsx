@@ -27,6 +27,17 @@ function StudentDashboard() {
     quizzesAttempted: 0,
   });
 
+  // Analytics state
+  const [analytics, setAnalytics] = useState({
+    upcomingQuizzes: [],
+    recentQuizResults: [],
+    pendingFees: 0,
+    totalFeesDue: 0,
+    averageQuizScore: 0,
+    recentActivity: [],
+  });
+  const [analyticsLoading, setAnalyticsLoading] = useState(true);
+
   const {
     register,
     handleSubmit,
@@ -106,6 +117,9 @@ function StudentDashboard() {
 
         // Fetch KPI data for the student
         await fetchKpiData(user.id, tuitions);
+
+        // Fetch analytics data
+        await fetchAnalytics(user.id, tuitions);
       }
     };
 
@@ -195,6 +209,187 @@ function StudentDashboard() {
     }
   };
 
+  const fetchAnalytics = async (studentId, tuitions) => {
+    setAnalyticsLoading(true);
+    try {
+      if (tuitions.length === 0) {
+        setAnalyticsLoading(false);
+        return;
+      }
+
+      const tuitionIds = tuitions.map(t => t.id);
+      const currentMonth = new Date().getMonth() + 1;
+      const currentYear = new Date().getFullYear();
+
+      // 1. Fetch upcoming quizzes (not attempted yet)
+      const { data: upcomingQuizzes, error: upcomingError } = await supabase
+        .from('quizzes')
+        .select('id, title, description, created_at, tuition_spaces(name)')
+        .in('tuition_id', tuitionIds)
+        .order('created_at', { ascending: false })
+        .limit(5);
+
+      if (upcomingError) throw upcomingError;
+
+      // Filter out quizzes already attempted
+      const { data: attemptedQuizIds } = await supabase
+        .from('quiz_attempts')
+        .select('quiz_id')
+        .eq('student_id', studentId);
+
+      const attemptedIds = attemptedQuizIds?.map(a => a.quiz_id) || [];
+      const filteredUpcoming = upcomingQuizzes?.filter(q => !attemptedIds.includes(q.id)) || [];
+
+      // 2. Fetch recent quiz results
+      const { data: recentAttempts, error: attemptsError } = await supabase
+        .from('quiz_attempts')
+        .select('id, score, total_questions, created_at, quizzes!inner(title, tuition_id)')
+        .eq('student_id', studentId)
+        .order('created_at', { ascending: false })
+        .limit(5);
+
+      if (attemptsError) throw attemptsError;
+
+      // Calculate average score
+      let averageQuizScore = 0;
+      if (recentAttempts && recentAttempts.length > 0) {
+        const totalPercentage = recentAttempts.reduce((sum, attempt) => {
+          return sum + (attempt.score / attempt.total_questions * 100);
+        }, 0);
+        averageQuizScore = Math.round(totalPercentage / recentAttempts.length);
+      }
+
+      // 3. Fetch fee status
+      const { data: feesData, error: feesError } = await supabase
+        .from('fees_payments')
+        .select('status, month, year')
+        .eq('student_id', studentId)
+        .eq('month', currentMonth)
+        .eq('year', currentYear);
+
+      if (feesError) throw feesError;
+
+      const pendingFees = feesData?.filter(f => f.status === 'unpaid').length || 0;
+
+      // Get total fee amount due
+      const { data: feeSettings } = await supabase
+        .from('student_fees')
+        .select('fee_amount')
+        .eq('student_id', studentId)
+        .in('tuition_id', tuitionIds);
+
+      const totalFeesDue = feeSettings?.reduce((sum, f) => sum + (parseFloat(f.fee_amount) || 0), 0) || 0;
+
+      // 4. Fetch recent activity
+      const recentActivity = await fetchStudentActivity(studentId, tuitionIds);
+
+      setAnalytics({
+        upcomingQuizzes: filteredUpcoming,
+        recentQuizResults: recentAttempts || [],
+        pendingFees,
+        totalFeesDue,
+        averageQuizScore,
+        recentActivity,
+      });
+    } catch (err) {
+      console.error('Error fetching analytics:', err);
+    } finally {
+      setAnalyticsLoading(false);
+    }
+  };
+
+  const fetchStudentActivity = async (studentId, tuitionIds) => {
+    const activities = [];
+
+    try {
+      // Get recent quiz attempts (last 7 days)
+      const sevenDaysAgo = new Date();
+      sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
+
+      const { data: quizAttempts } = await supabase
+        .from('quiz_attempts')
+        .select('id, score, total_questions, created_at, quizzes!inner(title)')
+        .eq('student_id', studentId)
+        .gte('created_at', sevenDaysAgo.toISOString())
+        .order('created_at', { ascending: false })
+        .limit(5);
+
+      quizAttempts?.forEach(attempt => {
+        activities.push({
+          type: 'quiz',
+          title: `Completed "${attempt.quizzes?.title || 'Quiz'}"`,
+          subtitle: `Score: ${attempt.score}/${attempt.total_questions} (${Math.round(attempt.score / attempt.total_questions * 100)}%)`,
+          time: attempt.created_at,
+          icon: 'quiz',
+          color: 'blue',
+        });
+      });
+
+      // Get recent attendance
+      const { data: recentAttendance } = await supabase
+        .from('class_attendance')
+        .select('status, created_at, classes!inner(name)')
+        .eq('student_id', studentId)
+        .eq('status', 'present')
+        .gte('created_at', sevenDaysAgo.toISOString())
+        .order('created_at', { ascending: false })
+        .limit(3);
+
+      recentAttendance?.forEach(attendance => {
+        activities.push({
+          type: 'attendance',
+          title: `Marked present in "${attendance.classes?.name || 'Class'}"`,
+          subtitle: 'Attendance recorded',
+          time: attendance.created_at,
+          icon: 'check',
+          color: 'emerald',
+        });
+      });
+
+      // Get recent fee payments
+      const { data: recentPayments } = await supabase
+        .from('fees_payments')
+        .select('status, paid_on, month, year')
+        .eq('student_id', studentId)
+        .eq('status', 'paid')
+        .order('paid_on', { ascending: false })
+        .limit(3);
+
+      recentPayments?.forEach(payment => {
+        activities.push({
+          type: 'payment',
+          title: `Fee payment confirmed`,
+          subtitle: `For ${new Date(payment.year, payment.month - 1).toLocaleString('default', { month: 'long' })} ${payment.year}`,
+          time: payment.paid_on,
+          icon: 'money',
+          color: 'amber',
+        });
+      });
+
+      // Sort by time and take top 6
+      activities.sort((a, b) => new Date(b.time) - new Date(a.time));
+      return activities.slice(0, 6);
+    } catch (err) {
+      console.error('Error fetching student activity:', err);
+      return [];
+    }
+  };
+
+  const formatTimeAgo = (dateString) => {
+    const date = new Date(dateString);
+    const now = new Date();
+    const seconds = Math.floor((now - date) / 1000);
+
+    if (seconds < 60) return 'Just now';
+    const minutes = Math.floor(seconds / 60);
+    if (minutes < 60) return `${minutes}m ago`;
+    const hours = Math.floor(minutes / 60);
+    if (hours < 24) return `${hours}h ago`;
+    const days = Math.floor(hours / 24);
+    if (days < 7) return `${days}d ago`;
+    return date.toLocaleDateString();
+  };
+
   const handleJoinTuition = async (data) => {
     // Get authenticated user directly
     const { data: { user } } = await supabase.auth.getUser();
@@ -210,7 +405,7 @@ function StudentDashboard() {
 
       const { data: tuition } = await supabase
         .from('tuition_spaces')
-        .select('id, name')
+        .select('id, name, monthly_fee, due_day')
         .eq('join_code', joinCodeValue)
         .maybeSingle();
 
@@ -247,6 +442,21 @@ function StudentDashboard() {
           return;
         }
         throw joinError;
+      }
+
+      // Create student_fees record with default tuition fee
+      const { error: feeError } = await supabase
+        .from('student_fees')
+        .insert({
+          tuition_id: tuition.id,
+          student_id: userId,
+          fee_amount: tuition.monthly_fee || 0,
+          due_day: tuition.due_day || 1,
+        });
+
+      if (feeError) {
+        console.error('Error creating student fee record:', feeError);
+        // Don't throw here - the join succeeded, fee can be set later
       }
 
       // Refresh tuitions list
@@ -408,128 +618,197 @@ function StudentDashboard() {
           </div>
         </div>
 
-        {/* KPI Cards */}
-        <div className="grid md:grid-cols-3 gap-6">
-          {/* Attendance % */}
-          <div className="bg-white rounded-2xl p-6 border border-slate-200 shadow-sm relative overflow-hidden group hover:border-slate-300 transition-colors">
-            <div className="absolute right-0 top-0 w-24 h-24 bg-slate-50 rounded-bl-full -mr-4 -mt-4 transition-transform group-hover:scale-110"></div>
-            <div className="relative flex items-center justify-between">
-              <div>
-                <p className="text-sm font-medium text-slate-500 mb-1">Attendance</p>
-                <p className="text-3xl font-bold text-slate-900">
-                  {kpiLoading ? (
-                    <span className="inline-block w-12 h-8 bg-slate-200 rounded animate-pulse"></span>
-                  ) : (
-                    `${kpiData.attendancePercentage}${kpiData.attendancePercentage === '--' ? '' : '%'}`
-                  )}
-                </p>
-              </div>
-              <div className="w-12 h-12 bg-white rounded-xl shadow-sm border border-slate-100 flex items-center justify-center relative z-10 text-slate-500">
-                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" />
-                </svg>
-              </div>
-            </div>
-            <div className="mt-4 flex items-center text-xs font-medium text-emerald-600 bg-emerald-50 px-2.5 py-1 rounded-lg w-fit">
-              {kpiLoading ? (
-                <span className="inline-block w-20 h-4 bg-slate-200 rounded animate-pulse"></span>
-              ) : (
-                <>
-                  <svg className="w-3.5 h-3.5 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                  </svg>
-                  Based on attended classes
-                </>
-              )}
-            </div>
-          </div>
-
-          {/* Classes Attended */}
-          <div className="bg-white rounded-2xl p-6 border border-slate-200 shadow-sm relative overflow-hidden group hover:border-emerald-200 transition-colors">
-            <div className="absolute right-0 top-0 w-24 h-24 bg-emerald-50 rounded-bl-full -mr-4 -mt-4 transition-transform group-hover:scale-110"></div>
-            <div className="relative flex items-center justify-between">
-              <div>
-                <p className="text-sm font-medium text-slate-500 mb-1">Classes Attended</p>
-                <p className="text-3xl font-bold text-slate-900">
-                  {kpiLoading ? (
-                    <span className="inline-block w-12 h-8 bg-slate-200 rounded animate-pulse"></span>
-                  ) : (
-                    kpiData.classesAttended
-                  )}
-                </p>
-              </div>
-              <div className="w-12 h-12 bg-white rounded-xl shadow-sm border border-slate-100 flex items-center justify-center relative z-10 text-emerald-600">
-                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
-                </svg>
-              </div>
-            </div>
-            <div className="mt-4 flex items-center text-xs font-medium text-emerald-600 bg-emerald-50 px-2.5 py-1 rounded-lg w-fit">
-              {kpiLoading ? (
-                <span className="inline-block w-20 h-4 bg-slate-200 rounded animate-pulse"></span>
-              ) : (
-                <>
-                  <svg className="w-3.5 h-3.5 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                  </svg>
-                  Total classes present
-                </>
-              )}
-            </div>
-          </div>
-
-          {/* Quizzes Attempted */}
-          <div className="bg-white rounded-2xl p-6 border border-slate-200 shadow-sm relative overflow-hidden group hover:border-amber-200 transition-colors">
-            <div className="absolute right-0 top-0 w-24 h-24 bg-amber-50 rounded-bl-full -mr-4 -mt-4 transition-transform group-hover:scale-110"></div>
-            <div className="relative flex items-center justify-between">
-              <div>
-                <p className="text-sm font-medium text-slate-500 mb-1">Quizzes Attempted</p>
-                <p className="text-3xl font-bold text-slate-900">
-                  {kpiLoading ? (
-                    <span className="inline-block w-12 h-8 bg-slate-200 rounded animate-pulse"></span>
-                  ) : (
-                    kpiData.quizzesAttempted
-                  )}
-                </p>
-              </div>
-              <div className="w-12 h-12 bg-white rounded-xl shadow-sm border border-slate-100 flex items-center justify-center relative z-10 text-amber-500">
-                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        {/* Stats Cards - Row 1 */}
+        <div className="grid md:grid-cols-4 gap-6">
+          <div className="bg-gradient-to-br from-indigo-500 to-indigo-600 rounded-2xl p-6 border border-indigo-400 shadow-lg relative overflow-hidden text-white">
+            <div className="absolute right-0 top-0 w-32 h-32 bg-white/10 rounded-bl-full -mr-8 -mt-8"></div>
+            <div className="relative">
+              <div className="flex items-center gap-2 mb-4">
+                <svg className="w-5 h-5 text-indigo-100" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
                 </svg>
+                <p className="text-sm font-medium text-indigo-100">Average Score</p>
+              </div>
+              <p className="text-4xl font-bold">
+                {analyticsLoading ? '-' : `${analytics.averageQuizScore}%`}
+              </p>
+              <p className="text-sm text-indigo-100 mt-2">Across all quizzes</p>
+            </div>
+          </div>
+
+          <div className="bg-white rounded-2xl p-6 border border-slate-200 shadow-sm relative overflow-hidden group hover:border-red-200 transition-colors">
+            <div className="absolute right-0 top-0 w-24 h-24 bg-red-50 rounded-bl-full -mr-4 -mt-4 transition-transform group-hover:scale-110"></div>
+            <div className="relative flex items-center justify-between">
+              <div>
+                <p className="text-sm font-medium text-slate-500 mb-1">Pending Fees</p>
+                <p className="text-3xl font-bold text-slate-900">
+                  {analyticsLoading ? (
+                    <span className="inline-block w-12 h-8 bg-slate-200 rounded animate-pulse"></span>
+                  ) : (
+                    analytics.pendingFees
+                  )}
+                </p>
+              </div>
+              <div className="w-12 h-12 bg-white rounded-xl shadow-sm border border-slate-100 flex items-center justify-center relative z-10 text-red-500">
+                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
               </div>
             </div>
-            <div className="mt-4 flex items-center text-xs font-medium text-amber-600 bg-amber-50 px-2.5 py-1 rounded-lg w-fit">
-              {kpiLoading ? (
-                <span className="inline-block w-20 h-4 bg-slate-200 rounded animate-pulse"></span>
-              ) : (
-                <>
-                  <svg className="w-3.5 h-3.5 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
+            <div className="mt-4 flex items-center text-xs font-medium text-slate-500 bg-slate-50 px-2.5 py-1 rounded-lg w-fit">
+              This month
+            </div>
+          </div>
+
+          <div className="bg-white rounded-2xl p-6 border border-slate-200 shadow-sm relative overflow-hidden group hover:border-emerald-200 transition-colors md:col-span-2">
+            <div className="absolute right-0 top-0 w-32 h-32 bg-emerald-50 rounded-bl-full -mr-8 -mt-8 transition-transform group-hover:scale-110"></div>
+            <div className="relative flex items-center justify-between h-full">
+              <div>
+                <div className="flex items-center gap-2 mb-4">
+                  <svg className="w-5 h-5 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" />
                   </svg>
-                  Total quiz attempts
-                </>
-              )}
+                  <p className="text-sm font-medium text-slate-500">Progress Overview</p>
+                </div>
+                <p className="text-2xl font-bold text-slate-900">
+                  {analyticsLoading ? 'Loading...' : (
+                    joinedTuitions.length > 0 ? (
+                      kpiData.attendancePercentage >= 80 ? (
+                        <>Great job! 🎉 Your attendance is excellent</>
+                      ) : kpiData.attendancePercentage >= 60 ? (
+                        <>Good progress! Keep it up 👍</>
+                      ) : (
+                        <>Attendance needs attention 📚</>
+                      )
+                    ) : 'Join a tuition to start learning'
+                  )}
+                </p>
+              </div>
+              <button
+                onClick={() => navigate('/dashboard/student/payments')}
+                className="px-4 py-2 bg-emerald-100 hover:bg-emerald-200 text-emerald-700 rounded-lg font-medium transition-colors"
+              >
+                View Fees
+              </button>
             </div>
           </div>
         </div>
 
-        {/* Upcoming Tasks */}
-        <div className="bg-white rounded-xl border border-slate-200 shadow-sm">
-          <div className="p-6 border-b border-slate-200">
-            <h3 className="text-lg font-semibold text-slate-900">Upcoming Tasks</h3>
-          </div>
-          <div className="divide-y divide-slate-100">
-            <div className="p-6 flex items-center justify-between hover:bg-slate-50 transition-colors">
-              <div className="flex items-center gap-4">
-                <div className="w-2 h-2 bg-red-500 rounded-full"></div>
-                <div>
-                  <p className="font-medium text-slate-900">Physics Chapter 7 Quiz</p>
-                  <p className="text-sm text-slate-600">Due in 2 days - 15 questions</p>
-                </div>
+        {/* Analytics Bottom Row */}
+        <div className="grid lg:grid-cols-2 gap-6">
+          {/* Pending Quizzes */}
+          <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden flex flex-col">
+            <div className="p-5 border-b border-slate-100 bg-slate-50/50 flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <svg className="w-5 h-5 text-slate-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+                </svg>
+                <h3 className="text-lg font-bold text-slate-900">Pending Quizzes</h3>
               </div>
-              <button className="px-4 py-2 bg-slate-900 text-white text-sm rounded-lg hover:bg-slate-800 transition-colors">
-                Start Quiz
-              </button>
+              <span className="bg-orange-100 text-orange-700 text-xs font-bold px-2.5 py-1 rounded-lg">
+                {analytics.upcomingQuizzes?.length || 0} Open
+              </span>
+            </div>
+            <div className="divide-y divide-slate-100 flex-1">
+              {analyticsLoading ? (
+                <div className="p-8 flex justify-center"><div className="animate-spin rounded-full h-8 w-8 border-b-2 border-indigo-600"></div></div>
+              ) : analytics.upcomingQuizzes?.length === 0 ? (
+                <div className="p-8 text-center text-slate-500 h-full flex flex-col justify-center">
+                  <svg className="w-12 h-12 mx-auto mb-3 text-slate-300" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                  </svg>
+                  <p className="font-medium">All caught up!</p>
+                  <p className="text-sm mt-1">No pending quizzes at the moment.</p>
+                </div>
+              ) : (
+                analytics.upcomingQuizzes.map((quiz, idx) => (
+                  <div key={idx} className="p-5 flex items-center justify-between hover:bg-slate-50 transition-colors group">
+                    <div className="flex items-center gap-4 min-w-0 pr-4">
+                      <div className="w-10 h-10 rounded-xl bg-orange-50 border border-orange-100 flex items-center justify-center shrink-0 group-hover:bg-orange-100 transition-colors">
+                        <svg className="w-5 h-5 text-orange-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                        </svg>
+                      </div>
+                      <div className="min-w-0">
+                        <p className="font-semibold text-slate-900 text-sm truncate">{quiz.title}</p>
+                        <p className="text-xs text-slate-500 mt-0.5 truncate">in {quiz.tuition_spaces?.name}</p>
+                      </div>
+                    </div>
+                    <button 
+                      onClick={() => navigate(`/dashboard/student/tuition/${quiz.tuition_spaces?.id}?tab=quizzes`)}
+                      className="px-3 py-1.5 bg-white border border-slate-200 text-slate-700 text-xs font-bold rounded-lg hover:bg-indigo-50 hover:text-indigo-600 hover:border-indigo-200 transition-colors shrink-0 shadow-sm"
+                    >
+                      Start
+                    </button>
+                  </div>
+                ))
+              )}
+            </div>
+          </div>
+
+          {/* Recent Activity */}
+          <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden flex flex-col">
+            <div className="p-5 border-b border-slate-100 bg-slate-50/50 flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <svg className="w-5 h-5 text-slate-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+                <h3 className="text-lg font-bold text-slate-900">Recent Activity</h3>
+              </div>
+            </div>
+            <div className="divide-y divide-slate-100 flex-1">
+              {analyticsLoading ? (
+                <div className="p-8 flex justify-center"><div className="animate-spin rounded-full h-8 w-8 border-b-2 border-indigo-600"></div></div>
+              ) : analytics.recentActivity?.length === 0 ? (
+                <div className="p-8 text-center text-slate-500 h-full flex flex-col justify-center">
+                  <svg className="w-12 h-12 mx-auto mb-3 text-slate-300" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                  </svg>
+                  <p className="font-medium">No recent activity</p>
+                  <p className="text-sm mt-1">Activity from the last 7 days will appear here</p>
+                </div>
+              ) : (
+                analytics.recentActivity?.map((activity, idx) => (
+                  <div key={idx} className="p-5 flex items-center justify-between hover:bg-slate-50 transition-colors">
+                    <div className="flex items-center gap-4 min-w-0 pr-2">
+                      <div className={`w-10 h-10 rounded-xl flex items-center justify-center border shadow-sm shrink-0 ${
+                        activity.color === 'blue' ? 'bg-blue-50 border-blue-100 text-blue-600' :
+                        activity.color === 'emerald' ? 'bg-emerald-50 border-emerald-100 text-emerald-600' :
+                        activity.color === 'amber' ? 'bg-amber-50 border-amber-100 text-amber-600' :
+                        'bg-slate-50 border-slate-100 text-slate-600'
+                      }`}>
+                        {activity.icon === 'quiz' && (
+                          <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                          </svg>
+                        )}
+                        {activity.icon === 'check' && (
+                          <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                          </svg>
+                        )}
+                        {activity.icon === 'money' && (
+                          <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                          </svg>
+                        )}
+                      </div>
+                      <div className="min-w-0">
+                        <p className="font-semibold text-slate-900 text-sm truncate">{activity.title}</p>
+                        <p className={`text-xs font-medium mt-0.5 truncate ${
+                          activity.color === 'blue' ? 'text-blue-600' :
+                          activity.color === 'emerald' ? 'text-emerald-600' :
+                          activity.color === 'amber' ? 'text-amber-600' :
+                          'text-slate-500'
+                        }`}>{activity.subtitle}</p>
+                      </div>
+                    </div>
+                    <span className="text-[11px] font-bold text-slate-400 bg-slate-100 px-2.5 py-1 rounded-md whitespace-nowrap shrink-0">
+                       {formatTimeAgo(activity.time)}
+                    </span>
+                  </div>
+                ))
+              )}
             </div>
           </div>
         </div>
