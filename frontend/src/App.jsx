@@ -3,10 +3,13 @@ import { useSelector } from 'react-redux';
 import { PublicRoute } from './components/PublicRoute';
 import { PrivateRoute } from './components/PrivateRoute';
 import { RoleRoute } from './components/RoleRoute';
+import { PasswordResetRoute } from './components/PasswordResetRoute';
 import { Toaster } from 'react-hot-toast';
 import Home from './pages/Home';
 import Login from './pages/Login';
 import Signup from './pages/Signup';
+import ForgotPassword from './pages/ForgotPassword';
+import UpdatePassword from './pages/UpdatePassword';
 import RoleSelection from './pages/RoleSelection';
 import TeacherDashboard from './pages/TeacherDashboard';
 import StudentDashboard from './pages/StudentDashboard';
@@ -68,6 +71,8 @@ function App() {
         <Route path="/" element={<Home />} />
         <Route path="/login" element={<PublicRoute><Login /></PublicRoute>} />
         <Route path="/signup" element={<PublicRoute><Signup /></PublicRoute>} />
+        <Route path="/forgot-password" element={<PublicRoute><ForgotPassword /></PublicRoute>} />
+        <Route path="/update-password" element={<PasswordResetRoute><UpdatePassword /></PasswordResetRoute>} />
         <Route path="/role-selection" element={
           <PrivateRoute>
             <RoleSelection />
