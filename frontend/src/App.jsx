@@ -4,6 +4,7 @@ import { PublicRoute } from './components/PublicRoute';
 import { PrivateRoute } from './components/PrivateRoute';
 import { RoleRoute } from './components/RoleRoute';
 import { PasswordResetRoute } from './components/PasswordResetRoute';
+import { ProfileCheckRoute } from './components/ProfileCheckRoute';
 import { Toaster } from 'react-hot-toast';
 import Home from './pages/Home';
 import Login from './pages/Login';
@@ -79,34 +80,46 @@ function App() {
           </PrivateRoute>
         } />
         <Route path="/dashboard/teacher" element={
-          <RoleRoute allowedRoles={['teacher']}>
-            <TeacherDashboard />
-          </RoleRoute>
+          <ProfileCheckRoute>
+            <RoleRoute allowedRoles={['teacher']}>
+              <TeacherDashboard />
+            </RoleRoute>
+          </ProfileCheckRoute>
         } />
         <Route path="/dashboard/student" element={
-          <RoleRoute allowedRoles={['student']}>
-            <StudentDashboard />
-          </RoleRoute>
+          <ProfileCheckRoute>
+            <RoleRoute allowedRoles={['student']}>
+              <StudentDashboard />
+            </RoleRoute>
+          </ProfileCheckRoute>
         } />
         <Route path="/dashboard/teacher/tuition/:tuitionId" element={
-          <RoleRoute allowedRoles={['teacher']}>
-            <TuitionDetail role="Teacher" />
-          </RoleRoute>
+          <ProfileCheckRoute>
+            <RoleRoute allowedRoles={['teacher']}>
+              <TuitionDetail role="Teacher" />
+            </RoleRoute>
+          </ProfileCheckRoute>
         } />
         <Route path="/dashboard/student/tuition/:tuitionId" element={
-          <RoleRoute allowedRoles={['student']}>
-            <TuitionDetail role="Student" />
-          </RoleRoute>
+          <ProfileCheckRoute>
+            <RoleRoute allowedRoles={['student']}>
+              <TuitionDetail role="Student" />
+            </RoleRoute>
+          </ProfileCheckRoute>
         } />
         <Route path="/dashboard/teacher/tuition/:tuitionId/class/:classId" element={
-          <RoleRoute allowedRoles={['teacher']}>
-            <ClassDetail role="Teacher" />
-          </RoleRoute>
+          <ProfileCheckRoute>
+            <RoleRoute allowedRoles={['teacher']}>
+              <ClassDetail role="Teacher" />
+            </RoleRoute>
+          </ProfileCheckRoute>
         } />
         <Route path="/dashboard/student/tuition/:tuitionId/class/:classId" element={
-          <RoleRoute allowedRoles={['student']}>
-            <ClassDetail role="Student" />
-          </RoleRoute>
+          <ProfileCheckRoute>
+            <RoleRoute allowedRoles={['student']}>
+              <ClassDetail role="Student" />
+            </RoleRoute>
+          </ProfileCheckRoute>
         } />
         <Route path="/profile" element={
           <PrivateRoute>

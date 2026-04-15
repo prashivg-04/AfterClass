@@ -1,10 +1,13 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useDispatch } from 'react-redux';
 import AuthLayout from '../components/auth/AuthLayout';
 import { supabase } from '../lib/supabase';
+import { setRole, setNeedsProfile } from '../lib/authSlice';
 
 export default function RoleSelection() {
   const navigate = useNavigate();
+  const dispatch = useDispatch();
   const [selectedRole, setSelectedRole] = useState(null);
   const [error, setError] = useState(null);
   const [submitting, setSubmitting] = useState(false);
@@ -76,6 +79,10 @@ export default function RoleSelection() {
         });
 
       if (upsertError) throw upsertError;
+
+      // Update Redux state
+      dispatch(setRole(selectedRole));
+      dispatch(setNeedsProfile(false));
 
       if (selectedRole === 'teacher') {
         navigate('/dashboard/teacher');

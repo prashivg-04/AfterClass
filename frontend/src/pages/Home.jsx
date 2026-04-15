@@ -1,6 +1,45 @@
-import { Link } from 'react-router-dom';
+import { useEffect, useState } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
+import { supabase } from '../lib/supabase';
 
 function Home() {
+  const navigate = useNavigate();
+  const [checking, setChecking] = useState(true);
+
+  useEffect(() => {
+    const checkSession = async () => {
+      const { data: { session } } = await supabase.auth.getSession();
+
+      if (session?.user) {
+        const { data: profile } = await supabase
+          .from('profiles')
+          .select('role')
+          .eq('id', session.user.id)
+          .maybeSingle();
+
+        if (profile?.role) {
+          if (profile.role === 'teacher') navigate('/dashboard/teacher', { replace: true });
+          else if (profile.role === 'student') navigate('/dashboard/student', { replace: true });
+        } else {
+          navigate('/role-selection', { replace: true });
+        }
+        return;
+      }
+
+      setChecking(false);
+    };
+
+    checkSession();
+  }, [navigate]);
+
+  if (checking) {
+    return (
+      <div className="min-h-screen bg-linear-to-br from-slate-50 to-slate-100 flex items-center justify-center">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-slate-900"></div>
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen bg-linear-to-br from-slate-50 to-slate-100 flex items-center justify-center p-6">
       <div className="max-w-4xl w-full">

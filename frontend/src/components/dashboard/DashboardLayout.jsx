@@ -1,9 +1,12 @@
 import { useNavigate, Link, useLocation } from 'react-router-dom';
 import { supabase } from '../../lib/supabase';
+import { useAuth } from '../../lib/AuthContext';
+import { useState, useEffect } from 'react';
 
 function DashboardLayout({ children, role }) {
   const navigate = useNavigate();
   const location = useLocation();
+  const { session } = useAuth();
 
   const isActive = (path) => location.pathname === path;
 
@@ -22,13 +25,43 @@ function DashboardLayout({ children, role }) {
     navigate('/login');
   };
 
+  const [profileName, setProfileName] = useState(null);
+
+  useEffect(() => {
+    if (session?.user?.id) {
+      supabase
+        .from('profiles')
+        .select('full_name')
+        .eq('id', session.user.id)
+        .single()
+        .then(({ data }) => setProfileName(data?.full_name));
+    }
+  }, [session?.user?.id]);
+
+  const getInitials = () => {
+    if (!session?.user) return role?.[0]?.toUpperCase() || '?';
+    const name = profileName || session.user.user_metadata?.full_name;
+    const email = session.user.email;
+    if (name) {
+        const parts = name.trim().split(/\s+/);
+        if (parts.length > 1) {
+            return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
+        }
+        return name[0].toUpperCase();
+    }
+    if (email) {
+        return email[0].toUpperCase();
+    }
+    return role?.[0]?.toUpperCase() || '?';
+  };
+
   return (
     <div className="h-screen overflow-hidden bg-slate-50 flex">
       {/* Sidebar */}
       <aside className="w-64 shrink-0 bg-white border-r border-slate-200 flex flex-col h-full">
         <div className="p-6 border-b border-slate-200">
           <h1 className="text-2xl font-bold text-slate-900">AfterClass</h1>
-          <p className="text-sm text-slate-600 mt-1">{role} Dashboard</p>
+          <p className="text-sm text-slate-600 mt-1 capitalize">{role} Dashboard</p>
         </div>
 
         <nav className="flex-1 overflow-y-auto p-4 space-y-2 scrollbar-hide">
@@ -80,10 +113,10 @@ function DashboardLayout({ children, role }) {
               </button>
               <Link
                 to="/profile"
-                className="w-10 h-10 bg-slate-900 rounded-full flex items-center justify-center text-white font-semibold hover:ring-2 hover:ring-slate-900/20 hover:ring-offset-2 transition-all cursor-pointer"
+                className="w-10 h-10 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-full flex items-center justify-center text-white font-semibold shadow-sm hover:shadow hover:ring-2 hover:ring-indigo-500/50 hover:ring-offset-2 transition-all cursor-pointer"
                 title="View Profile"
               >
-                {role[0]}
+                {getInitials()}
               </Link>
             </div>
           </div>

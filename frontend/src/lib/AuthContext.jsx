@@ -1,7 +1,7 @@
 import { createContext, useContext, useEffect, useState } from 'react';
 import { useDispatch } from 'react-redux';
 import { supabase } from './supabase';
-import { setSession, setRole, clearAuth } from './authSlice';
+import { setSession, setRole, setNeedsProfile, clearAuth } from './authSlice';
 
 const AuthContext = createContext(null);
 
@@ -40,8 +40,13 @@ export function AuthProvider({ children }) {
 
         if (initialSession?.user?.id) {
           const role = await fetchRole(initialSession.user.id);
-          if (isActive && role) {
-            dispatch(setRole(role));
+          if (isActive) {
+            if (role) {
+              dispatch(setRole(role));
+              dispatch(setNeedsProfile(false));
+            } else {
+              dispatch(setNeedsProfile(true));
+            }
           }
         }
 
@@ -70,8 +75,13 @@ export function AuthProvider({ children }) {
 
         if (session.user?.id) {
           fetchRole(session.user.id).then((role) => {
-            if (isActive && role) {
-              dispatch(setRole(role));
+            if (isActive) {
+              if (role) {
+                dispatch(setRole(role));
+                dispatch(setNeedsProfile(false));
+              } else {
+                dispatch(setNeedsProfile(true));
+              }
             }
           });
         }

@@ -4,6 +4,7 @@ const initialState = {
   session: null,
   user: null,
   role: null,
+  needsProfile: false,
   loading: true,
 };
 
@@ -19,6 +20,9 @@ const authSlice = createSlice({
     setRole: (state, action) => {
       state.role = action.payload;
     },
+    setNeedsProfile: (state, action) => {
+      state.needsProfile = action.payload;
+    },
     setLoading: (state, action) => {
       state.loading = action.payload;
     },
@@ -26,11 +30,12 @@ const authSlice = createSlice({
       state.session = null;
       state.user = null;
       state.role = null;
+      state.needsProfile = false;
       state.loading = false;
     },
   },
 });
 
-export const { setSession, setRole, setLoading, clearAuth } = authSlice.actions;
+export const { setSession, setRole, setNeedsProfile, setLoading, clearAuth } = authSlice.actions;
 
 export default authSlice.reducer;
