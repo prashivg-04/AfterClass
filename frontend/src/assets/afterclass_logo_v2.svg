@@ -1,0 +1,103 @@
+<svg fill="black" width="100%" viewBox="0 0 600 204.83" role="img" xmlns="http://www.w3.org/2000/svg">
+  <title >AfterClass Logo</title>
+  <desc >Futuristic geometric wordmark for AfterClass</desc>
+
+  
+
+  <rect fill="black" opacity="0.15" x="0" y="22" width="600" height="1.2" rx="0.6" />
+
+  <!-- Decorative: left bracket -->
+  <path d="M28 30 L16 30 L16 170 L28 170" fill="none" stroke-width="2.5" stroke="black" opacity="0.2" />
+  <!-- Decorative: right bracket -->
+  <path d="M572 30 L584 30 L584 170 L572 170" fill="none" stroke-width="2.5" stroke="black" opacity="0.2" />
+
+  <!-- Small corner dots -->
+  <circle cx="16" cy="30" r="3" fill="black" opacity="0.2" />
+  <circle cx="16" cy="170" r="3" fill="black" opacity="0.2" />
+  <circle cx="584" cy="30" r="3" fill="black" opacity="0.2" />
+  <circle cx="584" cy="170" r="3" fill="black" opacity="0.2" />
+
+  <rect fill="black" opacity="0.15" x="0" y="177" width="600" height="1.2" rx="0.6" />
+
+  <!--
+    MAIN WORDMARK: "AfterClass"
+    Custom geometric paths, slightly italic (skewX applied per-glyph via transform)
+    All letters: cap height ~90px, baseline at y=155, top at y=65
+    Skew factor: -7deg italic slant = skewX(-7)
+    Centered group
+  -->
+
+  <g transform="translate(40, 55) skewX(-9)" font-size="0" >
+
+    <!-- === A === -->
+    <!-- Triangle spike shape with true cutout in middle -->
+    <path d="M0,100 L18,0 L36,0 L54,100 L40,100 L35,72 L19,72 L14,100 Z M22,60 L32,60 L27,32 Z" />
+
+    <!-- === f === -->
+    <g transform="translate(62,0)" >
+      <!-- vertical stem -->
+      <rect x="0" y="14" width="12" height="86" />
+      <!-- top curve stub -->
+      <rect x="0" y="14" width="22" height="12" rx="6" />
+      <!-- crossbar -->
+      <rect x="0" y="46" width="28" height="10" />
+    </g>
+
+    <!-- === t === -->
+    <g transform="translate(100,0)" >
+      <rect x="8" y="0" width="12" height="100" />
+      <rect x="0" y="22" width="32" height="10" />
+      <!-- bottom foot angle -->
+      <polygon points="8,100 20,100 28,110 16,110" />
+    </g>
+
+    <!-- === e === -->
+    <g transform="translate(142,0)" >
+      <!-- outer shell & inner cutout merged -->
+      <path d="M0,50 Q0,0 28,0 Q56,0 56,50 L56,58 L12,58 Q14,78 28,78 Q40,78 44,68 L56,68 Q50,100 28,100 Q0,100 0,50 Z M12,46 L44,46 Q44,12 28,12 Q12,12 12,46 Z" />
+    </g>
+
+    <!-- === r === -->
+    <g transform="translate(208,0)" >
+      <rect x="0" y="0" width="12" height="100" />
+      <!-- arm -->
+      <path d="M12,0 Q52,0 52,34 L52,44 L40,44 L40,34 Q40,20 28,16 L12,16 Z" />
+    </g>
+
+    <!-- Thin gap / separator -->
+    <rect x="268" y="8" width="3" height="84" stroke="black" opacity="0.2" />
+
+    <!-- === C === -->
+    <g transform="translate(280,0)" >
+      <path d="&#10;        M52,22&#10;        Q42,0 22,0&#10;        Q0,0 0,50&#10;        Q0,100 22,100&#10;        Q42,100 52,78&#10;        L40,72&#10;        Q34,88 22,88&#10;        Q12,88 12,50&#10;        Q12,12 22,12&#10;        Q34,12 40,28&#10;        Z&#10;      " />
+    </g>
+
+    <!-- === l === -->
+    <g transform="translate(342,0)" >
+      <rect x="0" y="0" width="12" height="100" />
+      <!-- foot serif slab -->
+      <rect x="-4" y="92" width="22" height="8" rx="2" />
+    </g>
+
+    <!-- === a === -->
+    <g transform="translate(364,0)" >
+      <!-- bowl -->
+      <path d="&#10;        M48,100&#10;        L48,30&#10;        Q48,0 26,0&#10;        Q4,0 2,24&#10;        L14,26&#10;        Q16,12 26,12&#10;        Q36,12 36,30&#10;        L36,36&#10;        Q10,38 4,54&#10;        Q-2,70 6,86&#10;        Q12,100 28,100&#10;        Q40,100 46,90&#10;        L48,100&#10;        Z&#10;        M36,50 L36,76 Q34,88 24,88 Q14,88 14,74 Q14,52 36,50 Z&#10;      " fill-rule="evenodd" />
+    </g>
+
+    <!-- === s === -->
+    <g transform="translate(422,0)" >
+      <path d="&#10;        M48,28&#10;        Q46,0 26,0&#10;        Q4,0 4,22&#10;        Q4,42 28,52&#10;        Q48,60 48,78&#10;        Q48,100 24,100&#10;        Q2,100 0,74&#10;        L12,72&#10;        Q14,88 24,88&#10;        Q36,88 36,78&#10;        Q36,64 12,54&#10;        Q-2,46 0,22&#10;        Q2,0 26,0&#10;        Q50,0 52,28&#10;        Z&#10;      " />
+    </g>
+
+    <!-- === s (2nd) === -->
+    <g transform="translate(484,0)" >
+      <path d="&#10;        M48,28&#10;        Q46,0 26,0&#10;        Q4,0 4,22&#10;        Q4,42 28,52&#10;        Q48,60 48,78&#10;        Q48,100 24,100&#10;        Q2,100 0,74&#10;        L12,72&#10;        Q14,88 24,88&#10;        Q36,88 36,78&#10;        Q36,64 12,54&#10;        Q-2,46 0,22&#10;        Q2,0 26,0&#10;        Q50,0 52,28&#10;        Z&#10;      " />
+    </g>
+
+  </g>
+
+  <!-- Tagline -->
+  <text x="300" y="196" text-anchor="middle" font-family="'Courier New', Courier, monospace" font-size="14.5" font-weight="bold" letter-spacing="6" fill="black" opacity="0.75">MANAGE · TEACH · GROW</text>
+
+</svg>

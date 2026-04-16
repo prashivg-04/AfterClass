@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { supabase } from '../lib/supabase';
+import logo from '../assets/afterclass_logo_v2.svg';
 
 function Home() {
   const navigate = useNavigate();
@@ -44,9 +45,9 @@ function Home() {
     <div className="min-h-screen bg-linear-to-br from-slate-50 to-slate-100 flex items-center justify-center p-6">
       <div className="max-w-4xl w-full">
         <div className="text-center mb-12">
-          <h1 className="text-6xl font-bold text-slate-900 mb-4">
-            AfterClass
-          </h1>
+          <div className="flex justify-center mb-8">
+            <img src={logo} alt="AfterClass Logo" className="h-28 w-auto drop-shadow-xl" />
+          </div>
           <p className="text-xl text-slate-600 mb-8">
             Seamless learning continuity for teachers and students
           </p>
