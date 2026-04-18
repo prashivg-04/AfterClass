@@ -112,7 +112,7 @@ export default function Login() {
       <form onSubmit={handleSubmit(onSubmit)} className="grid grid-cols-1 md:grid-cols-2 gap-4 w-full" noValidate>
         
         {/* Header Tile */}
-        <div className="md:col-span-2 bg-slate-900 border border-slate-800 rounded-[1.5rem] md:rounded-[2rem] p-6 md:p-10 flex flex-col md:flex-row justify-between items-start md:items-center gap-4 md:gap-6 shadow-2xl relative overflow-hidden group">
+        <div className="md:col-span-2 bg-slate-900 border border-slate-800 rounded-3xl md:rounded-4xl p-6 md:p-10 flex flex-col md:flex-row justify-between items-start md:items-center gap-4 md:gap-6 shadow-2xl relative overflow-hidden group">
           <div className="absolute top-0 right-0 w-48 md:w-64 h-48 md:h-64 bg-indigo-500/20 rounded-full blur-3xl opacity-0 group-hover:opacity-100 transition-opacity duration-1000 pointer-events-none"></div>
           <div className="relative z-10">
             <h1 className="text-3xl md:text-4xl text-white font-extrabold tracking-tight mb-2">Welcome back.</h1>
@@ -126,7 +126,7 @@ export default function Login() {
         </div>
 
         {/* Email Input Tile */}
-        <div className="md:col-span-2 bg-white border border-slate-200/80 rounded-[1.5rem] md:rounded-[2rem] p-5 md:p-6 focus-within:bg-indigo-50/30 focus-within:border-indigo-300 transition-all group relative overflow-hidden shadow-sm hover:shadow-md">
+        <div className="md:col-span-2 bg-white border border-slate-200/80 rounded-3xl md:rounded-4xl p-5 md:p-6 focus-within:bg-indigo-50/30 focus-within:border-indigo-300 transition-all group relative overflow-hidden shadow-sm hover:shadow-md">
           <div className="flex items-center gap-2 mb-3 text-slate-400 group-focus-within:text-indigo-600 transition-colors">
              <Mail className="w-4 h-4" />
              <label className="text-xs font-bold uppercase tracking-widest">
@@ -148,7 +148,7 @@ export default function Login() {
         </div>
 
         {/* Password Input Tile */}
-        <div className="md:col-span-2 bg-white border border-slate-200/80 rounded-[1.5rem] md:rounded-[2rem] p-5 md:p-6 focus-within:bg-purple-50/30 focus-within:border-purple-300 transition-all group relative overflow-hidden shadow-sm hover:shadow-md">
+        <div className="md:col-span-2 bg-white border border-slate-200/80 rounded-3xl md:rounded-4xl p-5 md:p-6 focus-within:bg-purple-50/30 focus-within:border-purple-300 transition-all group relative overflow-hidden shadow-sm hover:shadow-md">
           <div className="flex justify-between items-center mb-3">
              <div className="flex items-center gap-2 text-slate-400 group-focus-within:text-purple-600 transition-colors">
                  <KeyRound className="w-4 h-4" />
@@ -191,7 +191,7 @@ export default function Login() {
         <button
           type="button"
           onClick={handleGoogleLogin}
-          className="bg-white border border-slate-200/80 rounded-[1.5rem] md:rounded-[2rem] p-5 md:p-6 hover:bg-slate-50 hover:border-slate-300 transition-all flex flex-col justify-between items-start h-[120px] md:h-[160px] group shadow-sm"
+          className="bg-white border border-slate-200/80 rounded-3xl md:rounded-4xl p-5 md:p-6 hover:bg-slate-50 hover:border-slate-300 transition-all flex flex-col justify-between items-start h-[120px] md:h-[160px] group shadow-sm"
         >
           <div className="w-full flex justify-between items-start">
             <div className="w-10 h-10 md:w-12 md:h-12 rounded-2xl bg-white border border-slate-100 flex items-center justify-center shadow-sm">
@@ -214,14 +214,14 @@ export default function Login() {
           type="submit"
           disabled={loading}
           className={`
-            border rounded-[1.5rem] md:rounded-[2rem] p-5 md:p-6 flex flex-col justify-between items-end h-[120px] md:h-[160px] transition-all group overflow-hidden relative shadow-lg
+            border rounded-3xl md:rounded-4xl p-5 md:p-6 flex flex-col justify-between items-end h-[120px] md:h-[160px] transition-all group overflow-hidden relative shadow-lg
             ${loading 
                ? 'bg-indigo-50 border-indigo-100 cursor-wait' 
                : 'bg-indigo-600 border-indigo-500 hover:bg-indigo-700 hover:scale-[0.98] active:scale-95 shadow-[0_0_40px_rgba(79,70,229,0.2)] hover:shadow-[0_0_60px_rgba(79,70,229,0.4)]'
             }
           `}
         >
-          <div className="absolute inset-0 bg-gradient-to-tr from-white/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity"></div>
+          <div className="absolute inset-0 bg-linear-to-tr from-white/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity"></div>
           <div className="relative z-10">
              <ArrowRight className={`w-8 h-8 md:w-10 md:h-10 ${loading ? 'text-indigo-300' : 'text-white group-hover:translate-x-2 transition-transform'}`} />
           </div>

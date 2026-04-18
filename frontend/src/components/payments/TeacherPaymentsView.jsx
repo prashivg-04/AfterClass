@@ -6,6 +6,12 @@ import DashboardLayout from '../dashboard/DashboardLayout';
 import { supabase } from '../../lib/supabase';
 import { handleError } from '../../utilities/errorHandler';
 
+import PaymentsHeroTile from './teacher/PaymentsHeroTile';
+import PaymentsHighLevelStats from './teacher/PaymentsHighLevelStats';
+import PaymentsTeacherConfig from './teacher/PaymentsTeacherConfig';
+import PaymentsList from './teacher/PaymentsList';
+import EditFeeModal from './teacher/EditFeeModal';
+
 function TeacherPaymentsView() {
   const { user } = useSelector((state) => state.auth);
   // Default to Teacher logic here
@@ -498,415 +504,58 @@ function TeacherPaymentsView() {
   // Teacher Dashboard View
   return (
     <DashboardLayout role={role}>
-      <div className="space-y-6">
-        {/* Header */}
-        <div className="bg-white rounded-2xl p-6 border border-slate-200 shadow-sm">
-          <h1 className="text-2xl font-bold text-slate-900 mb-2">Fee Management</h1>
-          <p className="text-slate-600">
-            Manage fees and track payments across all your tuitions - {monthName} {currentYear}
-          </p>
-        </div>
+      <div className="space-y-8">
+        
+        <PaymentsHeroTile monthName={monthName} currentYear={currentYear} />
 
-        {/* Teacher Payment Settings */}
-        <div className="bg-white rounded-2xl p-6 border border-slate-200 shadow-sm">
-          <div className="flex items-center justify-between mb-4">
-            <div className="flex items-center gap-2">
-              <svg className="w-5 h-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 6h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z" />
-              </svg>
-              <h3 className="text-lg font-bold text-slate-900">Your Payment Details</h3>
-            </div>
-            {!isEditingPaymentDetails && (
-              <button 
-                onClick={() => setIsEditingPaymentDetails(true)}
-                className="px-4 py-2 text-sm bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold rounded-lg transition-colors flex items-center gap-2 border border-slate-200"
-              >
-                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"/></svg>
-                Edit Details
-              </button>
-            )}
-          </div>
-          
-          <p className="text-sm text-slate-500 mb-6">
-            Students will see these details across all your tuitions to make payments.
-          </p>
-          
-          {!isEditingPaymentDetails ? (
-            <div className="grid md:grid-cols-2 gap-6 bg-slate-50 p-6 rounded-xl border border-slate-200">
-              {/* View Mode: UPI ID */}
-              <div>
-                <p className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">UPI ID</p>
-                {upiId ? (
-                  <p className="font-bold text-slate-900 text-lg">{upiId}</p>
-                ) : (
-                  <p className="text-sm text-slate-500 italic">Not set</p>
-                )}
-              </div>
-              
-              {/* View Mode: QR Code Preview */}
-              <div>
-                 <p className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">My QR Code</p>
-                 {qrCodeUrl ? (
-                   <div className="border border-slate-200 rounded-lg p-2 bg-white inline-block shadow-sm">
-                     <img src={qrCodeUrl} alt="My QR Code" className="w-32 h-32 object-contain rounded" />
-                   </div>
-                 ) : (
-                   <p className="text-sm text-slate-500 italic">No QR code uploaded</p>
-                 )}
-              </div>
-            </div>
-          ) : (
-            <div className="grid md:grid-cols-2 gap-6 bg-white p-6 rounded-xl border border-blue-100 ring-4 ring-blue-50/50">
-              {/* Edit Mode: Form */}
-              <div>
-                <label className="block text-sm font-medium text-slate-700 mb-2">UPI ID</label>
-                <input
-                  type="text"
-                  value={upiId}
-                  onChange={(e) => setUpiId(e.target.value)}
-                  placeholder="e.g., yourname@upi"
-                  className="w-full px-4 py-2.5 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 shadow-sm"
-                />
-              </div>
-              
-              <div>
-                <label className="block text-sm font-medium text-slate-700 mb-2">QR Code Image</label>
-                
-                {qrCodeUrl && !qrCodeFile && (
-                  <div className="mb-4 bg-slate-50 rounded-xl p-3 border border-slate-200">
-                    <p className="text-xs font-medium text-slate-500 mb-2">Currently Active QR:</p>
-                    <div className="flex items-center gap-4">
-                      <div className="border border-slate-200 rounded-lg p-1 bg-white shadow-sm">
-                        <img src={qrCodeUrl} alt="QR Code" className="w-16 h-16 object-contain rounded" />
-                      </div>
-                      <button 
-                        onClick={handleDeleteQrCode}
-                        className="text-sm text-red-600 hover:bg-red-50 px-3 py-1.5 rounded-lg font-medium border border-transparent hover:border-red-100 transition-colors"
-                      >
-                        Remove Image
-                      </button>
-                    </div>
-                  </div>
-                )}
-                
-                <div className="flex gap-2 items-center">
-                  <input
-                    type="file"
-                    accept="image/*"
-                    onChange={(e) => {
-                      const file = e.target.files[0];
-                      if (file) setQrCodeFile(file);
-                    }}
-                    ref={fileInputRef}
-                    className="w-full text-sm text-slate-500 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100 border border-slate-200 rounded-xl"
-                  />
-                </div>
-              </div>
-              
-              <div className="md:col-span-2 flex justify-end gap-3 mt-2 border-t border-slate-100 pt-5">
-                <button
-                  onClick={() => {
-                    setIsEditingPaymentDetails(false);
-                    setQrCodeFile(null);
-                    fetchTeacherData(); // Reset form to state in DB
-                  }}
-                  className="px-5 py-2.5 text-slate-600 font-semibold hover:bg-slate-100 rounded-xl transition-colors"
-                >
-                  Cancel
-                </button>
-                <button
-                  onClick={async () => {
-                     await handleSaveTeacherPaymentDetails();
-                     setIsEditingPaymentDetails(false);
-                  }}
-                  disabled={savingPaymentDetails}
-                  className="px-6 py-2.5 bg-blue-600 text-white font-semibold rounded-xl hover:bg-blue-700 disabled:opacity-50 transition-colors shadow-sm"
-                >
-                  {savingPaymentDetails ? 'Saving...' : 'Save & Lock Details'}
-                </button>
-              </div>
-            </div>
-          )}
-        </div>
+        <PaymentsHighLevelStats loading={loading} allStudents={allStudents} payments={payments} />
 
-        {/* Filters */}
-        <div className="bg-white rounded-2xl p-5 border border-slate-200 shadow-sm flex flex-col md:flex-row md:items-end justify-between gap-5">
-          <div className="flex-1 w-full md:max-w-md relative">
-            <label className="block text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-2">Search Student</label>
-            <div className="relative">
-              <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none">
-                <svg className="w-5 h-5 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
-              </div>
-              <input
-                type="text"
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                placeholder="Search by name or tuition..."
-                className="w-full pl-10 pr-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-colors shadow-sm text-sm font-medium placeholder:text-slate-400 placeholder:font-normal"
-              />
-            </div>
-          </div>
+        <div className="grid xl:grid-cols-3 gap-6 md:gap-8">
+          <PaymentsList
+            loading={loading}
+            filteredStudents={filteredStudents}
+            tuitions={tuitions}
+            studentFees={studentFees}
+            payments={payments}
+            searchQuery={searchQuery}
+            setSearchQuery={setSearchQuery}
+            tuitionFilter={tuitionFilter}
+            setTuitionFilter={setTuitionFilter}
+            statusFilter={statusFilter}
+            setStatusFilter={setStatusFilter}
+            handleApprovePayment={handleApprovePayment}
+            handleRejectPayment={handleRejectPayment}
+            handleMarkPaid={handleMarkPaid}
+            handleEditFee={handleEditFee}
+          />
 
-          <div className="flex flex-col sm:flex-row gap-4 w-full md:w-auto">
-            <div className="min-w-[180px] flex-1 sm:flex-none">
-              <label className="block text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-2">Filter by Tuition</label>
-              <select
-                value={tuitionFilter}
-                onChange={(e) => setTuitionFilter(e.target.value)}
-                className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-colors shadow-sm text-sm appearance-none font-semibold text-slate-700"
-                style={{ backgroundImage: `url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%236b7280' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3e%3c/svg%3e")`, backgroundPosition: 'right 0.75rem center', backgroundRepeat: 'no-repeat', backgroundSize: '1.25em 1.25em', paddingRight: '2.5rem' }}
-              >
-                <option value="all">All Tuitions</option>
-                {tuitions.map((t) => (
-                  <option key={t.id} value={t.id}>
-                    {t.name}
-                  </option>
-                ))}
-              </select>
-            </div>
-            
-            <div className="min-w-[160px] flex-1 sm:flex-none">
-              <label className="block text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-2">Filter by Status</label>
-              <select
-                value={statusFilter}
-                onChange={(e) => setStatusFilter(e.target.value)}
-                className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-colors shadow-sm text-sm appearance-none font-semibold text-slate-700"
-                style={{ backgroundImage: `url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%236b7280' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3e%3c/svg%3e")`, backgroundPosition: 'right 0.75rem center', backgroundRepeat: 'no-repeat', backgroundSize: '1.25em 1.25em', paddingRight: '2.5rem' }}
-              >
-                <option value="all">All Status</option>
-                <option value="unpaid">Unpaid</option>
-                <option value="pending">Pending</option>
-                <option value="paid">Paid</option>
-              </select>
-            </div>
+          <div className="xl:col-span-1 lg:order-2 order-1 space-y-6">
+            <PaymentsTeacherConfig
+              upiId={upiId}
+              setUpiId={setUpiId}
+              qrCodeUrl={qrCodeUrl}
+              qrCodeFile={qrCodeFile}
+              setQrCodeFile={setQrCodeFile}
+              isEditingPaymentDetails={isEditingPaymentDetails}
+              setIsEditingPaymentDetails={setIsEditingPaymentDetails}
+              savingPaymentDetails={savingPaymentDetails}
+              handleSaveTeacherPaymentDetails={handleSaveTeacherPaymentDetails}
+              handleDeleteQrCode={handleDeleteQrCode}
+              fileInputRef={fileInputRef}
+              fetchTeacherData={fetchTeacherData}
+            />
           </div>
         </div>
 
-        {/* Students List */}
-        <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
-          <div className="p-5 border-b border-slate-100 bg-slate-50/50">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-2">
-                <svg className="w-5 h-5 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                </svg>
-                <h3 className="text-lg font-bold text-slate-900">
-                  All Students ({filteredStudents.length})
-                </h3>
-              </div>
-            </div>
-          </div>
-
-          {loading ? (
-            <div className="p-12 flex items-center justify-center">
-              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
-            </div>
-          ) : filteredStudents.length === 0 ? (
-            <div className="p-8 text-center text-slate-500">
-              {allStudents.length === 0
-                ? 'No students enrolled in any tuition'
-                : 'No students match the selected filters'}
-            </div>
-          ) : (
-            <div className="divide-y divide-slate-100">
-              {filteredStudents.map((student) => {
-                const key = `${student.tuition_id}-${student.user_id}`;
-                const fee = studentFees[key];
-                const payment = payments[key];
-                const status = payment?.status || 'unpaid';
-                const feeAmount = fee?.fee_amount || 0;
-                const dueDay = fee?.due_day || 1;
-
-                return (
-                  <div key={key} className="p-5 hover:bg-slate-50/80 border-b border-slate-100 last:border-0 transition-colors group">
-                    <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6">
-                      
-                      {/* 1. Profile Section */}
-                      <div className="flex items-center gap-4 min-w-0 flex-1">
-                        <div className="w-12 h-12 rounded-full bg-linear-to-br from-blue-100 to-indigo-100 flex items-center justify-center font-bold text-blue-700 shadow-sm shrink-0 border border-white">
-                          {student.full_name?.charAt(0) || 'S'}
-                        </div>
-                        <div className="min-w-0">
-                          <p className="font-bold text-slate-900 text-base truncate">{student.full_name}</p>
-                          <div className="flex items-center gap-2 mt-0.5 text-sm text-slate-500">
-                             <svg className="w-4 h-4 shrink-0 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"/></svg>
-                             <span className="truncate">
-                               {student.tuition_name}
-                               {student.subject && ` • ${student.subject}`}
-                               {student.grade && ` • ${student.grade}`}
-                             </span>
-                          </div>
-                        </div>
-                      </div>
-
-                      {/* 2. Middle Stats */}
-                      <div className="flex items-center gap-6 md:gap-12 justify-between lg:justify-end border-t lg:border-t-0 border-slate-100 pt-4 lg:pt-0">
-                        <div className="flex flex-col">
-                           <span className="text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-1">Fee Amount</span>
-                           <div className="flex items-center gap-2">
-                             <span className="font-bold text-slate-900 text-lg">₹{feeAmount}</span>
-                           </div>
-                        </div>
-
-                        <div className="flex flex-col">
-                           <span className="text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-1">Due Date</span>
-                           <span className="font-semibold text-slate-700 text-sm mt-0.5">
-                             {dueDay}{dueDay === 1 ? 'st' : dueDay === 2 ? 'nd' : dueDay === 3 ? 'rd' : 'th'} of month
-                           </span>
-                        </div>
-                        
-                        {/* Desktop Status Badge */}
-                        <div className="hidden lg:flex flex-col items-end min-w-[120px]">
-                            {getStatusBadge(status)}
-                            {payment?.paid_on && status === 'paid' && (
-                              <span className="text-[11px] text-slate-400 mt-1.5 font-medium">
-                                {formatDate(payment.paid_on)}
-                              </span>
-                            )}
-                        </div>
-                      </div>
-
-                      {/* 3. Mobile Status & Actions */}
-                      <div className="flex flex-col lg:items-end gap-3 lg:min-w-[180px]">
-                        {/* Mobile Status Badge */}
-                        <div className="flex lg:hidden items-center justify-between w-full">
-                          <span className="text-[11px] font-bold text-slate-400 uppercase tracking-wider">Status</span>
-                          <div className="flex flex-col items-end">
-                            {getStatusBadge(status)}
-                            {payment?.paid_on && status === 'paid' && (
-                              <span className="text-[11px] text-slate-400 mt-1 font-medium">
-                                {formatDate(payment.paid_on)}
-                              </span>
-                            )}
-                          </div>
-                        </div>
-
-                        <div className="flex items-center gap-2 w-full lg:w-auto mt-2 lg:mt-0">
-                          {status === 'pending' && (
-                            <>
-                              <button
-                                onClick={() => handleRejectPayment(student)}
-                                className="flex-1 lg:flex-none px-3 py-2 bg-white border border-red-200 text-red-600 text-xs font-bold rounded-lg hover:bg-red-50 transition-colors shadow-sm"
-                              >
-                                Reject
-                              </button>
-                              <button
-                                onClick={() => handleApprovePayment(student)}
-                                className="flex-1 lg:flex-none px-3 py-2 bg-emerald-600 text-white text-xs font-bold rounded-lg hover:bg-emerald-700 transition-colors shadow-sm"
-                              >
-                                Approve
-                              </button>
-                            </>
-                          )}
-
-                          {status === 'unpaid' && (
-                            <button
-                              onClick={() => handleMarkPaid(student)}
-                              className="flex-1 lg:flex-none px-4 py-2 bg-white border border-slate-200 text-slate-700 text-xs font-bold rounded-lg hover:bg-slate-50 transition-colors shadow-sm"
-                            >
-                              Mark as Paid
-                            </button>
-                          )}
-
-                          <button
-                            onClick={() => handleEditFee(student)}
-                            className="flex-1 lg:flex-none p-2 border border-slate-200 text-slate-400 hover:text-blue-600 hover:border-blue-200 bg-white hover:bg-blue-50 rounded-lg transition-colors shadow-sm flex items-center justify-center gap-2"
-                            title="Edit Fee Settings"
-                          >
-                             <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"/></svg>
-                             <span className="lg:hidden text-xs font-bold">Edit Fee</span>
-                          </button>
-                        </div>
-                      </div>
-
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
-          )}
-        </div>
-
-        {/* Summary Stats */}
-        {!loading && allStudents.length > 0 && (
-          <div className="grid md:grid-cols-3 gap-4">
-            <div className="bg-white rounded-xl p-4 border border-slate-200">
-              <p className="text-sm text-slate-500 mb-1">Total Students</p>
-              <p className="text-2xl font-bold text-slate-900">{allStudents.length}</p>
-            </div>
-            <div className="bg-white rounded-xl p-4 border border-slate-200">
-              <p className="text-sm text-slate-500 mb-1">Pending Approvals</p>
-              <p className="text-2xl font-bold text-amber-600">
-                {allStudents.filter((s) => {
-                  const key = `${s.tuition_id}-${s.user_id}`;
-                  return payments[key]?.status === 'pending';
-                }).length}
-              </p>
-            </div>
-            <div className="bg-white rounded-xl p-4 border border-slate-200">
-              <p className="text-sm text-slate-500 mb-1">Paid This Month</p>
-              <p className="text-2xl font-bold text-emerald-600">
-                {allStudents.filter((s) => {
-                  const key = `${s.tuition_id}-${s.user_id}`;
-                  return payments[key]?.status === 'paid';
-                }).length}
-              </p>
-            </div>
-          </div>
-        )}
-
-        {/* Edit Fee Modal */}
-        {editingStudent && (
-          <div className="fixed inset-0 bg-slate-900/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-            <div className="bg-white rounded-2xl p-6 max-w-md w-full shadow-2xl">
-              <h3 className="text-lg font-bold text-slate-900 mb-1">
-                Edit Fee for {editingStudent.full_name}
-              </h3>
-              <p className="text-sm text-slate-500 mb-4">{editingStudent.tuition_name}</p>
-              <div className="space-y-4">
-                <div>
-                  <label className="block text-sm font-medium text-slate-700 mb-1">
-                    Fee Amount (₹)
-                  </label>
-                  <input
-                    type="number"
-                    value={feeAmount}
-                    onChange={(e) => setFeeAmount(e.target.value)}
-                    className="w-full px-4 py-2.5 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500"
-                    placeholder="0"
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-slate-700 mb-1">
-                    Due Day of Month
-                  </label>
-                  <input
-                    type="number"
-                    min="1"
-                    max="31"
-                    value={dueDay}
-                    onChange={(e) => setDueDay(e.target.value)}
-                    className="w-full px-4 py-2.5 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500"
-                  />
-                </div>
-              </div>
-              <div className="flex justify-end gap-3 mt-6">
-                <button
-                  onClick={() => setEditingStudent(null)}
-                  className="px-4 py-2 text-slate-600 hover:bg-slate-100 rounded-lg transition-colors"
-                >
-                  Cancel
-                </button>
-                <button
-                  onClick={handleSaveFee}
-                  className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
-                >
-                  Save
-                </button>
-              </div>
-            </div>
-          </div>
-        )}
+        <EditFeeModal
+          editingStudent={editingStudent}
+          setEditingStudent={setEditingStudent}
+          feeAmount={feeAmount}
+          setFeeAmount={setFeeAmount}
+          dueDay={dueDay}
+          setDueDay={setDueDay}
+          handleSaveFee={handleSaveFee}
+        />
       </div>
     </DashboardLayout>
   );
