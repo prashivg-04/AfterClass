@@ -8,7 +8,7 @@ function DashboardLayout({ children, role }) {
   const navigate = useNavigate();
   const location = useLocation();
   const { session } = useAuth();
-  const [profileName, setProfileName] = useState(null);
+  const [profileName, setProfileName] = useState(() => sessionStorage.getItem('cachedProfileName') || null);
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
   // Close sidebar on route change for mobile
@@ -42,7 +42,12 @@ function DashboardLayout({ children, role }) {
         .select('full_name')
         .eq('id', session.user.id)
         .single()
-        .then(({ data }) => setProfileName(data?.full_name));
+        .then(({ data }) => {
+           if (data?.full_name) {
+             setProfileName(data.full_name);
+             sessionStorage.setItem('cachedProfileName', data.full_name);
+           }
+        });
     }
   }, [session?.user?.id]);
 
@@ -152,7 +157,7 @@ function DashboardLayout({ children, role }) {
             </button>
             <Link
               to="/profile"
-              className="w-10 h-10 bg-slate-900 rounded-full flex items-center justify-center text-white font-bold hover:scale-105 active:scale-95 shadow-md shadow-slate-900/20 transition-all cursor-pointer border-2 border-white"
+              className="w-10 h-10 shrink-0 bg-linear-to-br from-indigo-500 to-purple-600 rounded-full flex items-center justify-center text-white font-black hover:scale-105 active:scale-95 shadow-lg shadow-indigo-500/20 transition-all cursor-pointer border-2 border-white/80 ring-2 ring-transparent hover:ring-indigo-100"
               title="View Profile"
             >
               {getInitials()}
