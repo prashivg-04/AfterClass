@@ -155,22 +155,29 @@ function AnnouncementsTab({ tuitionId, isTeacher }) {
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div className="flex items-center justify-between bg-white p-6 rounded-xl border border-slate-200 shadow-sm">
-        <div>
-          <h3 className="text-xl font-bold text-slate-900">Announcements</h3>
-          <p className="text-sm text-slate-500 mt-1">
-            {isTeacher
-              ? "Share important updates with your students"
-              : "Important updates from your teacher"}
-          </p>
+      <div className="flex flex-col sm:flex-row items-center justify-between bg-white p-6 sm:p-8 rounded-[2rem] border border-slate-200 shadow-sm gap-4">
+        <div className="flex items-center gap-4 w-full sm:w-auto">
+          <div className="w-12 h-12 bg-white rounded-xl shadow-sm border border-slate-200 flex items-center justify-center shrink-0 hidden sm:flex">
+            <svg className="w-6 h-6 text-slate-700" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M11 5.882V19.24a1.76 1.76 0 01-3.417.592l-2.147-6.15M18 13a3 3 0 100-6M5.436 13.683A4.001 4.001 0 017 6h1.832c4.1 0 7.625-1.234 9.168-3v14c-1.543-1.766-5.067-3-9.168-3H7a3.988 3.988 0 01-1.564-.317z" />
+            </svg>
+          </div>
+          <div>
+            <h3 className="text-2xl font-extrabold text-slate-900 tracking-tight">Announcements</h3>
+            <p className="text-sm font-medium text-slate-500 mt-1">
+              {isTeacher
+                ? "Share important updates with your students"
+                : "Important updates from your teacher"}
+            </p>
+          </div>
         </div>
         {isTeacher && (
           <button
             onClick={handleOpenCreate}
-            className="flex items-center gap-2 px-5 py-2.5 bg-blue-600 text-white text-sm font-semibold rounded-lg hover:bg-blue-700 shadow-sm transition-all hover:shadow hover:-translate-y-0.5"
+            className="w-full sm:w-auto flex items-center justify-center gap-2 px-6 py-3.5 bg-slate-900 text-white text-sm font-bold tracking-wide rounded-xl hover:bg-slate-800 shadow-lg shadow-slate-900/20 transition-all hover:-translate-y-0.5 active:scale-[0.98]"
           >
-            <svg className="w-4 h-4 text-blue-100" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+            <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M12 4v16m8-8H4" />
             </svg>
             Make Announcement
           </button>
@@ -180,11 +187,11 @@ function AnnouncementsTab({ tuitionId, isTeacher }) {
       {/* Announcements List */}
       <div className="w-full">
         {loading ? (
-          <div className="p-12 flex items-center justify-center bg-white rounded-xl border border-slate-200 shadow-sm">
+          <div className="p-12 flex items-center justify-center bg-white rounded-[2rem] border border-slate-200 shadow-sm">
             <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
           </div>
         ) : announcements.length === 0 ? (
-          <div className="p-12 flex flex-col items-center justify-center text-center bg-white rounded-xl border border-slate-200 shadow-sm">
+          <div className="p-12 flex flex-col items-center justify-center text-center bg-white rounded-[2rem] border border-slate-200 shadow-sm">
             <div className="w-20 h-20 bg-blue-50/50 rounded-full flex items-center justify-center mb-5 border border-blue-100 shadow-sm animate-in zoom-in duration-300">
               <svg className="w-10 h-10 text-blue-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M11 5.882V19.24a1.76 1.76 0 01-3.417.592l-2.147-6.15M18 13a3 3 0 100-6M5.436 13.683A4.001 4.001 0 017 6h1.832c4.1 0 7.625-1.234 9.168-3v14c-1.543-1.766-5.067-3-9.168-3H7a3.988 3.988 0 01-1.564-.317z" />
@@ -202,7 +209,7 @@ function AnnouncementsTab({ tuitionId, isTeacher }) {
             {announcements.map((announcement) => (
               <div
                 key={announcement.id}
-                className="bg-white rounded-xl border border-slate-200 shadow-sm hover:shadow-md transition-all duration-200 p-6 group"
+                className="bg-white rounded-[2rem] border border-slate-200 shadow-sm hover:shadow-md transition-all duration-200 p-6 sm:p-8 group"
               >
                 <div className="flex items-start justify-between gap-4 mb-4">
                   <div className="flex items-center gap-3">

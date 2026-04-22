@@ -12,48 +12,48 @@ export default function OverviewTab({
   return (
     <div className="space-y-6">
       {/* Tuition Info Card */}
-      <div className="bg-white rounded-2xl p-6 md:p-8 border border-slate-200 shadow-sm relative overflow-hidden">
-        <div className="flex items-center gap-3 mb-6">
-          <div className="w-10 h-10 bg-slate-50 rounded-xl flex items-center justify-center border border-slate-200 shadow-sm shrink-0">
-            <svg className="w-5 h-5 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+      <div className="bg-white rounded-[2rem] p-8 border border-slate-200 shadow-sm relative overflow-hidden">
+        <div className="flex items-center gap-4 mb-8">
+          <div className="w-12 h-12 bg-slate-900 rounded-2xl flex items-center justify-center shadow-md shrink-0">
+            <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
             </svg>
           </div>
-          <h3 className="text-xl font-bold text-slate-900">
+          <h3 className="text-2xl font-extrabold text-slate-900 tracking-tight">
             {isTeacher ? 'Tuition Details' : 'About This Tuition'}
           </h3>
         </div>
         <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
           {tuition.subject && (
-            <div className="bg-slate-50/50 p-4 rounded-xl border border-slate-100">
-              <p className="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-1.5">Subject</p>
-              <p className="font-semibold text-slate-900">{tuition.subject}</p>
+            <div className="bg-slate-50 p-5 rounded-3xl border border-slate-100">
+              <p className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-2">Subject</p>
+              <p className="text-lg font-bold text-slate-900">{tuition.subject}</p>
             </div>
           )}
           {tuition.grade && (
-            <div className="bg-slate-50/50 p-4 rounded-xl border border-slate-100">
-              <p className="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-1.5">Grade</p>
-              <p className="font-semibold text-slate-900">{tuition.grade}</p>
+            <div className="bg-slate-50 p-5 rounded-3xl border border-slate-100">
+              <p className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-2">Grade</p>
+              <p className="text-lg font-bold text-slate-900">{tuition.grade}</p>
             </div>
           )}
           {tuition.batch && (
-            <div className="bg-slate-50/50 p-4 rounded-xl border border-slate-100">
-              <p className="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-1.5">Batch</p>
-              <p className="font-semibold text-slate-900">{tuition.batch}</p>
+            <div className="bg-slate-50 p-5 rounded-3xl border border-slate-100">
+              <p className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-2">Batch</p>
+              <p className="text-lg font-bold text-slate-900">{tuition.batch}</p>
             </div>
           )}
           {isTeacher && (
-            <div className="bg-slate-50/50 p-4 rounded-xl border border-slate-100">
-              <p className="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-1.5">Join Code</p>
-              <p className="font-mono font-bold text-slate-900 tracking-wider bg-white border border-slate-200 px-2 py-0.5 rounded shadow-sm inline-block">
+            <div className="bg-slate-50 p-5 rounded-3xl border border-slate-100">
+              <p className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-2">Join Code</p>
+              <p className="font-mono text-lg font-extrabold text-slate-900 tracking-wider">
                 {tuition.join_code || 'N/A'}
               </p>
             </div>
           )}
           {tuition.description && (
-            <div className="md:col-span-2 lg:col-span-3 bg-slate-50/50 p-4 rounded-xl border border-slate-100">
-              <p className="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-1.5">Description</p>
-              <p className="text-slate-700 leading-relaxed">{tuition.description}</p>
+            <div className="md:col-span-2 lg:col-span-3 bg-slate-50 p-5 rounded-3xl border border-slate-100">
+              <p className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-2">Description</p>
+              <p className="text-slate-700 leading-relaxed font-medium">{tuition.description}</p>
             </div>
           )}
         </div>
@@ -176,43 +176,48 @@ export default function OverviewTab({
           </div>
 
           {/* Attendance Heatmap */}
-          <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
-            <div className="p-5 border-b border-slate-100 bg-slate-50/50 flex items-center gap-2">
-              <svg className="w-5 h-5 text-slate-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
-              </svg>
-              <h3 className="text-lg font-bold text-slate-900">Attendance Tracker</h3>
+          <div className="bg-white rounded-[2rem] border border-slate-200 shadow-sm overflow-hidden">
+            <div className="p-6 sm:p-8 border-b border-slate-100 bg-slate-50 flex items-center gap-3">
+              <div className="w-12 h-12 bg-white rounded-xl shadow-sm border border-slate-200 flex items-center justify-center">
+                <svg className="w-6 h-6 text-slate-700" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                </svg>
+              </div>
+              <div>
+                <h3 className="text-xl font-extrabold text-slate-900 tracking-tight">Attendance Record</h3>
+                <p className="text-sm font-medium text-slate-500 mt-1">Rolling 365-day history</p>
+              </div>
             </div>
-            <div className="p-6 overflow-x-auto">
+            <div className="p-6 sm:p-8 overflow-x-auto">
               <Rolling365Heatmap
                 intensityMap={attendanceData}
                 tuitionCreatedAt={tuitionCreatedDate}
                 studentJoinedAt={studentJoinedDate}
               />
-              <div className="flex flex-wrap items-center gap-x-6 gap-y-2 mt-4 text-xs text-slate-500">
-                <div className="flex items-center gap-1.5">
-                  <div className="w-3 h-3 rounded-[2px] bg-[#10b981]"></div>
+              <div className="flex flex-wrap items-center gap-x-6 gap-y-3 mt-8 pt-6 border-t border-slate-100 text-[13px] font-bold text-slate-500 tracking-wide uppercase">
+                <div className="flex items-center gap-2">
+                  <div className="w-3.5 h-3.5 rounded-[4px] bg-[#10b981] shadow-sm"></div>
                   <span>Present</span>
                 </div>
-                <div className="flex items-center gap-1.5">
-                  <div className="w-3 h-3 rounded-[2px] bg-[#f87171]"></div>
+                <div className="flex items-center gap-2">
+                  <div className="w-3.5 h-3.5 rounded-[4px] bg-[#f87171] shadow-sm"></div>
                   <span>Absent</span>
                 </div>
-                <div className="flex items-center gap-1.5">
-                  <div className="w-3 h-3 rounded-[2px] bg-[#e2e8f0]"></div>
-                  <span>No record</span>
+                <div className="flex items-center gap-2">
+                  <div className="w-3.5 h-3.5 rounded-[4px] bg-[#f1f5f9] shadow-sm border border-slate-200/60"></div>
+                  <span>No class</span>
                 </div>
-                <div className="flex items-center gap-1.5 ml-2">
-                  <div className="relative w-3 h-3 rounded-[2px] bg-[#e2e8f0] overflow-hidden">
-                    <div className="absolute top-0 left-0 w-0 h-0 border-t-[5px] border-r-[5px] border-t-blue-500 border-r-transparent"></div>
+                <div className="flex items-center gap-2 ml-auto">
+                  <div className="relative w-3.5 h-3.5 rounded-[4px] bg-[#f1f5f9] border border-slate-200/60 overflow-hidden shadow-sm">
+                    <div className="absolute top-0 left-0 w-0 h-0 border-t-[6px] border-r-[6px] border-t-[#3b82f6] border-r-transparent"></div>
                   </div>
                   <span>Tuition created</span>
                 </div>
-                <div className="flex items-center gap-1.5">
-                  <div className="relative w-3 h-3 rounded-[2px] bg-[#e2e8f0] overflow-hidden">
-                    <div className="absolute top-0 right-0 w-0 h-0 border-t-[5px] border-l-[5px] border-t-purple-500 border-l-transparent"></div>
+                <div className="flex items-center gap-2">
+                  <div className="relative w-3.5 h-3.5 rounded-[4px] bg-[#f1f5f9] border border-slate-200/60 overflow-hidden shadow-sm">
+                    <div className="absolute top-0 right-0 w-0 h-0 border-t-[6px] border-l-[6px] border-t-[#a855f7] border-l-transparent"></div>
                   </div>
-                  <span>Student joined</span>
+                  <span>You joined</span>
                 </div>
               </div>
             </div>

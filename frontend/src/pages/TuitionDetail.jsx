@@ -425,61 +425,63 @@ function TuitionDetail({ role = 'Teacher' }) {
   return (
     <DashboardLayout role={role}>
       <div className="space-y-6">
-        {/* Header Section */}
-        <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-6 sm:p-8 relative overflow-hidden">
-          {/* Decorative background element */}
-          <div className="absolute top-0 right-0 w-64 h-64 bg-linear-to-br from-blue-50 to-indigo-50 rounded-full blur-3xl -mr-20 -mt-20 opacity-70 pointer-events-none"></div>
+        {/* Premium Dark Hero Section */}
+        <div className="bg-slate-900 rounded-[2.5rem] border border-slate-800 shadow-2xl p-6 sm:p-10 relative overflow-hidden">
+          {/* Ambient Glowing Orbs */}
+          <div className="absolute top-0 right-0 w-96 h-96 bg-indigo-500/20 rounded-full blur-[100px] pointer-events-none -mt-20 -mr-20"></div>
+          <div className="absolute -bottom-10 left-10 w-72 h-72 bg-blue-500/15 rounded-full blur-[80px] pointer-events-none"></div>
 
-          <div className="relative flex flex-col sm:flex-row sm:items-start gap-5">
+          <div className="relative z-10 flex flex-col sm:flex-row sm:items-start gap-6">
             <button
               onClick={() => navigate(`/dashboard/${role.toLowerCase()}`)}
-              className="shrink-0 w-10 h-10 flex items-center justify-center bg-slate-50 hover:bg-slate-100 text-slate-600 rounded-full transition-colors self-start border border-slate-200"
+              className="shrink-0 w-12 h-12 flex items-center justify-center bg-white/5 hover:bg-white/10 text-slate-300 hover:text-white rounded-2xl transition-all border border-white/10 shadow-sm self-start group"
               aria-label="Back to dashboard"
             >
-              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+              <svg className="w-5 h-5 group-hover:-translate-x-1 transition-transform duration-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M10 19l-7-7m0 0l7-7m-7 7h18" />
               </svg>
             </button>
 
             <div className="flex-1">
-              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-3">
-                <div className="flex items-center gap-3">
-                  <div className="w-12 h-12 bg-blue-100/50 rounded-xl flex items-center justify-center border border-blue-200/50 shadow-sm shrink-0">
-                    <svg className="w-6 h-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-4">
+                <div className="flex items-center gap-4">
+                  <div className="w-14 h-14 bg-indigo-500/20 rounded-2xl flex items-center justify-center border border-indigo-500/30 shadow-inner shrink-0 relative overflow-hidden">
+                     <div className="absolute inset-0 bg-linear-to-br from-indigo-400/20 to-transparent"></div>
+                    <svg className="w-7 h-7 text-indigo-300 relative z-10" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
                     </svg>
                   </div>
-                  <h1 className="text-2xl sm:text-3xl font-bold text-slate-900 tracking-tight">{tuition.name}</h1>
+                  <h1 className="text-3xl sm:text-4xl font-extrabold text-white tracking-tight">{tuition.name}</h1>
                 </div>
 
-                <div className="flex items-center gap-2 text-sm font-medium px-3 py-1.5 bg-blue-50 text-blue-700 rounded-lg border border-blue-100/50 self-start sm:self-auto shrink-0">
-                  <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                <div className="flex items-center gap-2 text-xs font-bold uppercase tracking-widest px-4 py-2 bg-white/5 text-slate-300 rounded-xl border border-white/10 self-start sm:self-auto shrink-0 shadow-sm backdrop-blur-md">
+                  <svg className="w-4 h-4 text-emerald-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
                   </svg>
                   <span>Created {formatDate(tuition.created_at)}</span>
                 </div>
               </div>
 
               {tuition.description && (
-                <p className="text-slate-600 mb-5 leading-relaxed sm:ml-15">{tuition.description}</p>
+                <p className="text-slate-400 mb-6 leading-relaxed sm:ml-[4.5rem] font-medium max-w-3xl">{tuition.description}</p>
               )}
 
-              <div className="flex flex-wrap gap-2 sm:ml-15 mb-6">
+              <div className="flex flex-wrap gap-2.5 sm:ml-[4.5rem] mb-6">
                 {tuition.subject && (
-                  <span className="inline-flex items-center px-2.5 py-1 rounded-lg text-xs font-semibold bg-indigo-50 text-indigo-700 border border-indigo-100">
-                    <span className="w-1.5 h-1.5 rounded-full bg-indigo-500 mr-1.5"></span>
+                  <span className="inline-flex items-center px-3 py-1.5 rounded-xl text-xs font-bold text-white bg-white/5 border border-white/10 shadow-sm">
+                    <span className="w-2 h-2 rounded-full bg-indigo-400 mr-2 shadow-[0_0_8px_rgba(129,140,248,0.8)]"></span>
                     {tuition.subject}
                   </span>
                 )}
                 {tuition.grade && (
-                  <span className="inline-flex items-center px-2.5 py-1 rounded-lg text-xs font-semibold bg-purple-50 text-purple-700 border border-purple-100">
-                    <span className="w-1.5 h-1.5 rounded-full bg-purple-500 mr-1.5"></span>
+                  <span className="inline-flex items-center px-3 py-1.5 rounded-xl text-xs font-bold text-white bg-white/5 border border-white/10 shadow-sm">
+                    <span className="w-2 h-2 rounded-full bg-emerald-400 mr-2 shadow-[0_0_8px_rgba(52,211,153,0.8)]"></span>
                     {tuition.grade}
                   </span>
                 )}
                 {tuition.batch && (
-                  <span className="inline-flex items-center px-2.5 py-1 rounded-lg text-xs font-semibold bg-emerald-50 text-emerald-700 border border-emerald-100">
-                    <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 mr-1.5"></span>
+                  <span className="inline-flex items-center px-3 py-1.5 rounded-xl text-xs font-bold text-white bg-white/5 border border-white/10 shadow-sm">
+                    <span className="w-2 h-2 rounded-full bg-amber-400 mr-2 shadow-[0_0_8px_rgba(251,191,36,0.8)]"></span>
                     {tuition.batch}
                   </span>
                 )}
@@ -488,39 +490,39 @@ function TuitionDetail({ role = 'Teacher' }) {
 
             {/* Teacher Share Code / Student Teacher Info */}
             {isTeacher ? (
-              <div className="shrink-0 bg-slate-50/80 p-4 rounded-xl border border-slate-200/60 shadow-sm sm:mt-0 max-w-xs w-full sm:w-64">
-                <p className="text-xs font-bold text-slate-700 mb-2 uppercase tracking-wider text-center">Invite Students</p>
-                <div className="flex items-center gap-2 w-full mb-1">
-                  <div className="bg-white border border-slate-200 px-3 py-2.5 rounded-lg text-slate-800 font-mono tracking-wider font-bold shadow-inner flex-1 text-center text-lg">
+              <div className="shrink-0 bg-white/5 backdrop-blur-xl p-5 rounded-[1.5rem] border border-white/10 shadow-2xl sm:mt-0 max-w-xs w-full sm:w-72">
+                <p className="text-xs font-bold text-slate-400 mb-3 uppercase tracking-widest text-center">Invite Students</p>
+                <div className="flex items-center gap-2 w-full mb-2">
+                  <div className="bg-slate-900 border border-white/10 px-4 py-3 rounded-xl text-white font-mono tracking-widest font-bold shadow-inner flex-1 text-center text-xl">
                     {tuition.join_code}
                   </div>
                   <button
                     onClick={copyJoinCode}
-                    className="p-3 bg-white border border-slate-200 text-slate-600 hover:text-blue-600 hover:border-blue-200 hover:bg-blue-50 rounded-lg transition-all shadow-sm group"
+                    className="p-3.5 bg-indigo-600 hover:bg-indigo-500 border border-indigo-500 text-white rounded-xl transition-all shadow-[0_0_20px_rgba(79,70,229,0.3)] hover:shadow-[0_0_25px_rgba(79,70,229,0.5)] group"
                     title="Copy Join Code"
                   >
                     {copied ? (
-                      <svg className="w-5 h-5 text-emerald-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                      <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
                       </svg>
                     ) : (
                       <svg className="w-5 h-5 group-hover:scale-110 transition-transform" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
                       </svg>
                     )}
                   </button>
                 </div>
-                <p className="text-[10px] text-slate-500 text-center w-full leading-tight text-balance">Share this code to allow students to join.</p>
+                <p className="text-[11px] text-slate-500 text-center w-full leading-relaxed font-medium">Share this code to allow your students to join.</p>
               </div>
             ) : (
               tuition.teacher && (
-                <div className="flex items-center gap-3 bg-slate-50/80 p-3 lg:p-4 rounded-xl border border-slate-200/60 shadow-sm shrink-0 sm:mt-0">
-                  <div className="w-10 h-10 bg-indigo-100 rounded-full flex items-center justify-center text-indigo-700 font-bold border border-indigo-200">
+                <div className="flex items-center gap-4 bg-white/5 backdrop-blur-xl p-4 lg:p-5 rounded-[1.5rem] border border-white/10 shadow-2xl shrink-0 sm:mt-0 max-w-xs w-full sm:w-64">
+                  <div className="w-12 h-12 bg-linear-to-br from-indigo-500 to-blue-600 rounded-2xl flex items-center justify-center text-white font-extrabold shadow-inner border border-indigo-400/50">
                     {tuition.teacher.full_name?.charAt(0) || 'T'}
                   </div>
                   <div>
-                    <p className="text-xs text-slate-500 font-medium">Teacher</p>
-                    <p className="text-sm font-semibold text-slate-800">{tuition.teacher.full_name}</p>
+                    <p className="text-[10px] uppercase tracking-widest text-slate-400 font-bold mb-0.5">Instructed By</p>
+                    <p className="text-base font-bold text-white tracking-wide">{tuition.teacher.full_name}</p>
                   </div>
                 </div>
               )
@@ -528,12 +530,12 @@ function TuitionDetail({ role = 'Teacher' }) {
           </div>
         </div>
 
-        {/* Tabs - Modern Premium Style */}
-        <div className="border-b border-slate-200 mt-6 px-4 sm:px-6 flex overflow-x-auto scrollbar-hide">
-          <nav className="flex gap-6 sm:gap-8 min-w-max relative pb-0 w-full" aria-label="Tabs">
-            {/* Animated Background Underline */}
+        {/* Tabs - Thick Modern Premium Style */}
+        <div className="mt-2 px-2 sm:px-4 flex overflow-x-auto scrollbar-hide bg-white rounded-2xl shadow-sm border border-slate-200">
+          <nav className="flex min-w-max relative w-full" aria-label="Tabs">
+            {/* Animated Underline/Pill Indicator */}
             <div
-              className="absolute bottom-0 h-[3px] bg-blue-600 rounded-t-md transition-all duration-300 ease-in-out will-change-[left,width]"
+              className="absolute bottom-0 h-1 bg-slate-900 rounded-t-lg transition-all duration-300 ease-spring will-change-[left,width]"
               style={{ left: indicatorStyle.left, width: indicatorStyle.width }}
             />
             {tabs.map((tab, index) => (
@@ -542,10 +544,10 @@ function TuitionDetail({ role = 'Teacher' }) {
                 ref={el => tabsRef.current[index] = el}
                 onClick={() => setActiveTab(tab.id)}
                 className={`
-                  relative whitespace-nowrap py-4 px-1 font-semibold text-sm transition-colors duration-200 select-none outline-none
+                  relative whitespace-nowrap py-5 px-6 font-bold text-sm transition-all duration-200 select-none outline-none tracking-wide
                   ${activeTab === tab.id
-                    ? 'text-blue-700'
-                    : 'text-slate-500 hover:text-slate-900'
+                    ? 'text-slate-900'
+                    : 'text-slate-400 hover:text-slate-600 hover:bg-slate-50/50'
                   }
                 `}
               >

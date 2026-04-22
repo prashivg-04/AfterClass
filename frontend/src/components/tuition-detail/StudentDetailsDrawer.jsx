@@ -273,15 +273,15 @@ export default function StudentDetailsDrawer({ student, tuitionId, onClose }) {
       />
 
       {/* Drawer */}
-      <div className={`fixed top-0 right-0 h-full w-full sm:w-[480px] bg-white shadow-2xl z-50 transform transition-transform duration-300 ease-out flex flex-col ${isOpen ? 'translate-x-0' : 'translate-x-full'}`}>
-                {/* Header */}
-        <div className="flex items-center justify-between p-6 border-b border-slate-200 bg-slate-50/50">
+      <div className={`fixed top-0 right-0 h-full w-full sm:w-[520px] bg-white shadow-2xl z-50 transform transition-transform duration-300 ease-out flex flex-col ${isOpen ? 'translate-x-0' : 'translate-x-full'}`}>
+        {/* Header */}
+        <div className="flex items-center justify-between p-6 sm:p-8 border-b border-slate-100 bg-slate-50">
           <div className="flex items-center gap-4">
-            <div className="w-14 h-14 rounded-2xl bg-linear-to-br from-indigo-100 to-purple-100 flex items-center justify-center text-indigo-700 font-bold text-xl border border-indigo-200">
+            <div className="w-14 h-14 rounded-[1.5rem] bg-white shadow-sm flex items-center justify-center text-slate-700 font-extrabold text-2xl border border-slate-200 shrink-0">
               {student.full_name?.charAt(0) || 'S'}
             </div>
             <div>
-              <h2 className="text-xl font-bold text-slate-900">{student.full_name}</h2>
+              <h2 className="text-2xl font-extrabold text-slate-900 tracking-tight">{student.full_name}</h2>
               <p className="text-sm text-slate-500">
                 {studentStats.joinedDate
                   ? `Joined ${new Date(studentStats.joinedDate).toLocaleDateString(undefined, { year: 'numeric', month: 'short', day: 'numeric' })}`
@@ -310,74 +310,74 @@ export default function StudentDetailsDrawer({ student, tuitionId, onClose }) {
               {/* KPI Cards Grid */}
               <div className="grid grid-cols-2 gap-4">
                 {/* Attendance Card */}
-                <div className="bg-gradient-to-br from-blue-50 to-indigo-50 rounded-2xl p-5 border border-blue-100">
-                  <div className="flex items-center justify-between mb-3">
-                    <div className="w-10 h-10 bg-blue-100 rounded-xl flex items-center justify-center">
-                      <svg className="w-5 h-5 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                <div className="bg-blue-50/80 rounded-3xl p-5 sm:p-6 border border-blue-100/50">
+                  <div className="flex items-center justify-between mb-4">
+                    <div className="w-12 h-12 bg-white rounded-xl shadow-sm border border-blue-100 flex items-center justify-center">
+                      <svg className="w-6 h-6 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
                       </svg>
                     </div>
-                    <span className="text-xs font-semibold text-blue-600 bg-blue-100 px-2 py-0.5 rounded-full">
+                    <span className="text-xs font-bold text-blue-700 bg-blue-100 px-2.5 py-1 rounded-full uppercase tracking-wide">
                       {studentStats.attendancePercentage}%
                     </span>
                   </div>
-                  <p className="text-2xl font-bold text-slate-900">{studentStats.classesAttended}/{studentStats.classesConducted}</p>
+                  <p className="text-3xl font-extrabold text-slate-900 tracking-tight">{studentStats.classesAttended}/{studentStats.classesConducted}</p>
                   <p className="text-sm text-slate-500 mt-1">Classes Attended</p>
                 </div>
 
                 {/* Quiz Performance Card */}
-                <div className="bg-gradient-to-br from-purple-50 to-pink-50 rounded-2xl p-5 border border-purple-100">
-                  <div className="flex items-center justify-between mb-3">
-                    <div className="w-10 h-10 bg-purple-100 rounded-xl flex items-center justify-center">
-                      <svg className="w-5 h-5 text-purple-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" />
+                <div className="bg-purple-50/80 rounded-3xl p-5 sm:p-6 border border-purple-100/50">
+                  <div className="flex items-center justify-between mb-4">
+                    <div className="w-12 h-12 bg-white rounded-xl shadow-sm border border-purple-100 flex items-center justify-center">
+                      <svg className="w-6 h-6 text-purple-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" />
                       </svg>
                     </div>
-                    <span className={`text-xs font-semibold px-2 py-0.5 rounded-full ${
-                      studentStats.averageQuizScore >= 70 ? 'bg-emerald-100 text-emerald-600' :
-                      studentStats.averageQuizScore >= 40 ? 'bg-amber-100 text-amber-600' :
-                      'bg-red-100 text-red-600'
+                    <span className={`text-xs font-bold px-2.5 py-1 rounded-full uppercase tracking-wide shadow-sm ${
+                      studentStats.averageQuizScore >= 70 ? 'bg-emerald-100 text-emerald-700 border border-emerald-200' :
+                      studentStats.averageQuizScore >= 40 ? 'bg-amber-100 text-amber-700 border border-amber-200' :
+                      'bg-red-100 text-red-700 border border-red-200'
                     }`}>
                       {studentStats.averageQuizScore}%
                     </span>
                   </div>
-                  <p className="text-2xl font-bold text-slate-900">{studentStats.quizzesAttempted}/{studentStats.totalQuizzes}</p>
+                  <p className="text-3xl font-extrabold text-slate-900 tracking-tight">{studentStats.quizzesAttempted}/{studentStats.totalQuizzes}</p>
                   <p className="text-sm text-slate-500 mt-1">Quizzes Attempted</p>
                 </div>
 
                 {/* Resources Card */}
-                <div className="bg-gradient-to-br from-emerald-50 to-teal-50 rounded-2xl p-5 border border-emerald-100">
-                  <div className="flex items-center justify-between mb-3">
-                    <div className="w-10 h-10 bg-emerald-100 rounded-xl flex items-center justify-center">
-                      <svg className="w-5 h-5 text-emerald-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                <div className="bg-emerald-50/80 rounded-3xl p-5 sm:p-6 border border-emerald-100/50">
+                  <div className="flex items-center justify-between mb-4">
+                    <div className="w-12 h-12 bg-white rounded-xl shadow-sm border border-emerald-100 flex items-center justify-center">
+                      <svg className="w-6 h-6 text-emerald-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
                       </svg>
                     </div>
                   </div>
-                  <p className="text-2xl font-bold text-slate-900">{studentStats.resourcesUploaded}</p>
+                  <p className="text-3xl font-extrabold text-slate-900 tracking-tight">{studentStats.resourcesUploaded}</p>
                   <p className="text-sm text-slate-500 mt-1">Resources Uploaded</p>
                 </div>
 
                 {/* Total Classes Card */}
-                <div className="bg-gradient-to-br from-amber-50 to-orange-50 rounded-2xl p-5 border border-amber-100">
-                  <div className="flex items-center justify-between mb-3">
-                    <div className="w-10 h-10 bg-amber-100 rounded-xl flex items-center justify-center">
-                      <svg className="w-5 h-5 text-amber-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                <div className="bg-amber-50/80 rounded-3xl p-5 sm:p-6 border border-amber-100/50">
+                  <div className="flex items-center justify-between mb-4">
+                    <div className="w-12 h-12 bg-white rounded-xl shadow-sm border border-amber-100 flex items-center justify-center">
+                      <svg className="w-6 h-6 text-amber-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
                       </svg>
                     </div>
                   </div>
-                  <p className="text-2xl font-bold text-slate-900">{studentStats.totalClasses}</p>
+                  <p className="text-3xl font-extrabold text-slate-900 tracking-tight">{studentStats.totalClasses}</p>
                   <p className="text-sm text-slate-500 mt-1">Total Classes</p>
                 </div>
               </div>
 
               {/* Fee Settings Section */}
-              <div className="bg-white rounded-2xl border border-slate-200 overflow-hidden">
-                <div className="p-4 border-b border-slate-100 bg-slate-50/50 flex justify-between items-center">
-                  <h3 className="font-bold text-slate-900 flex items-center gap-2">
-                    <svg className="w-5 h-5 text-slate-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z" />
+              <div className="bg-white rounded-[2rem] border border-slate-200 overflow-hidden shadow-sm">
+                <div className="p-5 border-b border-slate-100 bg-slate-50 flex justify-between items-center">
+                  <h3 className="text-lg font-bold text-slate-900 flex items-center gap-2">
+                    <svg className="w-5 h-5 text-slate-700" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z" />
                     </svg>
                     Fee Settings
                     {feeSettings.hasIndividualFee && (
@@ -469,10 +469,10 @@ export default function StudentDetailsDrawer({ student, tuitionId, onClose }) {
               </div>
 
               {/* Detailed Stats */}
-              <div className="bg-slate-50 rounded-2xl p-5 border border-slate-200">
-                <h3 className="font-bold text-slate-900 mb-4 flex items-center gap-2">
-                  <svg className="w-5 h-5 text-slate-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+              <div className="bg-slate-50 rounded-[2rem] p-6 sm:p-8 border border-slate-200 shadow-sm">
+                <h3 className="text-lg font-bold text-slate-900 mb-5 flex items-center gap-2">
+                  <svg className="w-5 h-5 text-slate-700" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
                   </svg>
                   Performance Breakdown
                 </h3>
@@ -510,11 +510,11 @@ export default function StudentDetailsDrawer({ student, tuitionId, onClose }) {
 
               {/* Recent Attendance */}
               {studentStats.recentAttendance.length > 0 && (
-                <div className="bg-white rounded-2xl border border-slate-200 overflow-hidden">
-                  <div className="p-4 border-b border-slate-100 bg-slate-50/50">
-                    <h3 className="font-bold text-slate-900 flex items-center gap-2">
-                      <svg className="w-5 h-5 text-slate-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                <div className="bg-white rounded-[2rem] border border-slate-200 overflow-hidden shadow-sm">
+                  <div className="p-5 border-b border-slate-100 bg-slate-50">
+                    <h3 className="text-lg font-bold text-slate-900 flex items-center gap-2">
+                      <svg className="w-5 h-5 text-slate-700" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
                       </svg>
                       Recent Attendance
                     </h3>
@@ -596,15 +596,15 @@ export default function StudentDetailsDrawer({ student, tuitionId, onClose }) {
         </div>
 
         {/* Footer */}
-        <div className="p-4 border-t border-slate-200 bg-slate-50/50">
-          <div className="flex gap-3">
+        <div className="p-6 border-t border-slate-100 bg-white">
+          <div className="flex gap-4">
             <button
               onClick={handleClose}
-              className="flex-1 px-4 py-2.5 text-sm font-semibold text-slate-700 bg-white border border-slate-200 rounded-xl hover:bg-slate-50 transition-colors"
+              className="flex-1 px-6 py-3.5 text-sm font-bold tracking-wide text-slate-700 bg-white border-2 border-slate-200 rounded-xl hover:bg-slate-50 hover:border-slate-300 transition-all active:scale-[0.98]"
             >
               Close
             </button>
-            <button className="flex-1 px-4 py-2.5 text-sm font-semibold text-white bg-blue-600 rounded-xl hover:bg-blue-700 transition-colors">
+            <button className="flex-1 px-6 py-3.5 text-sm font-bold tracking-wide text-white bg-slate-900 rounded-xl shadow-lg shadow-slate-900/20 hover:bg-slate-800 transition-all hover:-translate-y-0.5 active:scale-[0.98]">
               View Full Profile
             </button>
           </div>

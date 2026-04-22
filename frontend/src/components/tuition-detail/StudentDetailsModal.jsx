@@ -2,55 +2,55 @@ export default function StudentDetailsModal({ student, onClose }) {
   if (!student) return null;
 
   return (
-    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-      <div className="bg-white rounded-xl p-6 max-w-md w-full mx-4 shadow-xl">
-        <div className="flex items-center justify-between mb-6">
-          <h2 className="text-xl font-semibold text-slate-900">Student Details</h2>
+    <div className="fixed inset-0 bg-slate-900/40 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+      <div className="bg-white rounded-[2rem] p-6 sm:p-8 max-w-md w-full shadow-2xl animate-in fade-in zoom-in duration-200">
+        <div className="flex items-center justify-between mb-8">
+          <h2 className="text-2xl font-extrabold text-slate-900 tracking-tight">Student Details</h2>
           <button
             onClick={onClose}
-            className="p-2 hover:bg-slate-100 rounded-lg"
+            className="p-2.5 bg-slate-50 hover:bg-slate-100 rounded-xl transition-colors text-slate-500 hover:text-slate-700"
           >
-            <svg className="w-5 h-5 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M6 18L18 6M6 6l12 12" />
             </svg>
           </button>
         </div>
 
-        <div className="space-y-4">
-          <div>
-            <p className="text-sm text-slate-500 mb-1">Name</p>
-            <p className="font-medium text-slate-900">{student.full_name}</p>
+        <div className="space-y-6">
+          <div className="bg-slate-50 rounded-2xl p-5 border border-slate-100">
+            <p className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">Name</p>
+            <p className="font-bold text-lg text-slate-900">{student.full_name}</p>
           </div>
-          <div>
-            <p className="text-sm text-slate-500 mb-1">Joined On</p>
-            <p className="font-medium text-slate-900">
-              {new Date(student.created_at).toLocaleDateString()}
+          <div className="bg-slate-50 rounded-2xl p-5 border border-slate-100">
+            <p className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">Joined On</p>
+            <p className="font-bold text-lg text-slate-900">
+              {new Date(student.created_at).toLocaleDateString(undefined, { year: 'numeric', month: 'long', day: 'numeric' })}
             </p>
           </div>
 
-          <div className="border-t border-slate-200 pt-4 mt-4">
-            <p className="text-sm text-slate-500 mb-3">Performance</p>
-            <div className="grid grid-cols-3 gap-4">
-              <div className="text-center p-3 bg-slate-50 rounded-lg">
-                <p className="text-2xl font-bold text-slate-900">--%</p>
-                <p className="text-xs text-slate-500">Attendance</p>
+          <div className="pt-2">
+            <p className="text-sm font-bold text-slate-900 mb-3">Performance Overview</p>
+            <div className="grid grid-cols-3 gap-3">
+              <div className="text-center p-4 bg-blue-50/50 rounded-2xl border border-blue-100/50">
+                <p className="text-2xl font-extrabold text-slate-900">--%</p>
+                <p className="text-[10px] font-bold text-slate-500 uppercase tracking-wide mt-1">Attendance</p>
               </div>
-              <div className="text-center p-3 bg-slate-50 rounded-lg">
-                <p className="text-2xl font-bold text-slate-900">--</p>
-                <p className="text-xs text-slate-500">Classes</p>
+              <div className="text-center p-4 bg-amber-50/50 rounded-2xl border border-amber-100/50">
+                <p className="text-2xl font-extrabold text-slate-900">--</p>
+                <p className="text-[10px] font-bold text-slate-500 uppercase tracking-wide mt-1">Classes</p>
               </div>
-              <div className="text-center p-3 bg-slate-50 rounded-lg">
-                <p className="text-2xl font-bold text-slate-900">--</p>
-                <p className="text-xs text-slate-500">Quizzes</p>
+              <div className="text-center p-4 bg-purple-50/50 rounded-2xl border border-purple-100/50">
+                <p className="text-2xl font-extrabold text-slate-900">--</p>
+                <p className="text-[10px] font-bold text-slate-500 uppercase tracking-wide mt-1">Quizzes</p>
               </div>
             </div>
           </div>
         </div>
 
-        <div className="mt-6 flex justify-end">
+        <div className="mt-8 flex justify-end gap-3 pt-6 border-t border-slate-100">
           <button
             onClick={onClose}
-            className="px-4 py-2 text-sm font-medium text-slate-700 bg-slate-100 rounded-lg hover:bg-slate-200"
+            className="w-full px-6 py-3.5 text-sm font-bold tracking-wide text-slate-700 bg-white border-2 border-slate-200 rounded-xl hover:bg-slate-50 hover:border-slate-300 transition-all active:scale-[0.98]"
           >
             Close
           </button>

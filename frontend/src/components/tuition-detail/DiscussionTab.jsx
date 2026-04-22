@@ -275,17 +275,17 @@ function DiscussionTab({ tuitionId, isTeacher }) {
   }, {});
 
   return (
-    <div className="bg-white rounded-3xl border border-slate-200 shadow-sm overflow-hidden flex flex-col h-[600px] relative">
+    <div className="bg-white rounded-[2rem] border border-slate-200 shadow-sm overflow-hidden flex flex-col h-[600px] relative">
       {/* Header */}
-      <div className="p-4 sm:p-5 border-b border-slate-100 bg-white/80 backdrop-blur-md flex items-center justify-between z-10 sticky top-0 shrink-0">
-        <div className="flex items-center gap-3">
-          <div className="w-10 h-10 bg-indigo-50 rounded-xl flex items-center justify-center text-indigo-500">
-            <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
+      <div className="flex flex-col sm:flex-row items-center justify-between bg-slate-50 p-6 sm:p-8 border-b border-slate-100 gap-4 z-10 sticky top-0 shrink-0">
+        <div className="flex items-center gap-4 w-full sm:w-auto">
+          <div className="w-12 h-12 bg-white rounded-xl shadow-sm border border-slate-200 flex items-center justify-center shrink-0 hidden sm:flex">
+            <svg className="w-6 h-6 text-slate-700" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
             </svg>
           </div>
           <div>
-            <h3 className="text-lg font-bold text-slate-900 leading-tight">Class Discussion</h3>
+            <h3 className="text-2xl font-extrabold text-slate-900 tracking-tight leading-tight">Class Discussion</h3>
             <p className="text-xs font-medium text-slate-500 flex items-center gap-1.5">
               <span className="w-2 h-2 rounded-full bg-emerald-500"></span>
               Real-time chat
@@ -436,7 +436,7 @@ function DiscussionTab({ tuitionId, isTeacher }) {
           <button
             type="submit"
             disabled={sending || !newMessage.trim()}
-            className="px-6 py-3.5 bg-blue-600 text-white font-bold rounded-2xl hover:bg-blue-700 focus:ring-4 focus:ring-blue-500/20 disabled:opacity-50 disabled:bg-slate-300 disabled:text-slate-500 disabled:shadow-none transition-all shadow-sm shadow-blue-500/20 flex items-center justify-center gap-2 shrink-0 group"
+            className="w-full sm:w-auto flex items-center justify-center gap-2 px-6 py-3.5 bg-slate-900 text-white text-sm font-bold tracking-wide rounded-xl hover:bg-slate-800 shadow-lg shadow-slate-900/20 transition-all hover:-translate-y-0.5 active:scale-[0.98] disabled:opacity-50 disabled:bg-slate-300 disabled:text-slate-500 disabled:shadow-none shrink-0 group"
           >
             {sending ? (
               <svg className="animate-spin h-5 w-5" fill="none" viewBox="0 0 24 24">
