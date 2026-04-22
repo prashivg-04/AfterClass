@@ -44,7 +44,6 @@ function AnnouncementsTab({ tuitionId, isTeacher }) {
       .order('created_at', { ascending: false });
 
     if (error) {
-      console.error('Error fetching announcements:', error);
       toast.error('Failed to load announcements');
     } else {
       setAnnouncements(data || []);

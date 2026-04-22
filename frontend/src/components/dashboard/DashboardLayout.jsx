@@ -19,14 +19,11 @@ function DashboardLayout({ children, role }) {
   const isActive = (path) => location.pathname === path;
 
   const handleLogout = async () => {
-    console.log('Logout clicked');
 
     const { error } = await supabase.auth.signOut();
 
     if (error) {
-      console.error('Logout error:', error);
     } else {
-      console.log('SignOut successful, navigating to /login');
     }
 
     // Navigate after signOut completes

@@ -143,7 +143,6 @@ function TeacherDashboard() {
         studentsByTuition,
       });
     } catch (err) {
-      console.error('Error fetching analytics:', err);
     } finally {
       setAnalyticsLoading(false);
     }
@@ -246,7 +245,6 @@ function TeacherDashboard() {
       activities.sort((a, b) => new Date(b.time) - new Date(a.time));
       return activities.slice(0, 6);
     } catch (err) {
-      console.error('Error fetching recent activity:', err);
       return [];
     }
   };

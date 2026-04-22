@@ -59,7 +59,6 @@ export function ClassDoubtsTab({ classId, isTeacher }) {
       .order('created_at', { ascending: false });
 
     if (error) {
-      console.error('Error fetching doubts:', error);
       toast.error('Failed to load doubts');
     } else {
       setDoubts(data || []);

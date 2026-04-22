@@ -17,25 +17,21 @@ function DiscussionTab({ tuitionId, isTeacher }) {
     try {
       const { data: { user }, error } = await supabase.auth.getUser();
       if (error) {
-        console.error('Get user error:', error);
         return;
       }
       setCurrentUser(user);
     } catch (err) {
-      console.error('Get user exception:', err);
     }
   }, []);
 
   // Fetch messages
   const fetchMessages = useCallback(async () => {
     if (!tuitionId) {
-      console.log('No tuitionId provided, skipping fetch');
       return;
     }
 
     // Prevent duplicate fetches
     if (fetchedRef.current) {
-      console.log('Already fetched, skipping duplicate');
       return;
     }
 
@@ -45,7 +41,6 @@ function DiscussionTab({ tuitionId, isTeacher }) {
     // Create AbortController for timeout
     const controller = new AbortController();
     const fetchTimeout = setTimeout(() => {
-      console.log('Fetch timeout reached, cancelling request');
       controller.abort();
       setLoading(false);
       setMessages([]);
@@ -53,7 +48,6 @@ function DiscussionTab({ tuitionId, isTeacher }) {
     }, 15000);
 
     try {
-      console.log('Fetching messages for tuitionId:', tuitionId);
 
       // First, fetch messages
       const { data: messagesData, error: messagesError } = await supabase
@@ -63,7 +57,6 @@ function DiscussionTab({ tuitionId, isTeacher }) {
         .order('created_at', { ascending: true });
 
       if (messagesError) {
-        console.error('Fetch messages error:', messagesError);
         clearTimeout(fetchTimeout);
         toast.error('Failed to load messages');
         setMessages([]);
@@ -72,14 +65,12 @@ function DiscussionTab({ tuitionId, isTeacher }) {
       }
 
       if (!messagesData || messagesData.length === 0) {
-        console.log('No messages found');
         clearTimeout(fetchTimeout);
         setMessages([]);
         setLoading(false);
         return;
       }
 
-      console.log('Fetched messages:', messagesData.length);
 
       // Get unique sender IDs
       const senderIds = [...new Set(messagesData.map(m => m.sender_id))];
@@ -93,7 +84,6 @@ function DiscussionTab({ tuitionId, isTeacher }) {
           .in('id', senderIds);
 
         if (profilesError) {
-          console.error('Fetch profiles error:', profilesError);
         }
 
         if (profilesData) {
@@ -118,11 +108,9 @@ function DiscussionTab({ tuitionId, isTeacher }) {
         };
       });
 
-      console.log('Final messages with senders:', messagesWithSenders.length);
       clearTimeout(fetchTimeout);
       setMessages(messagesWithSenders);
     } catch (err) {
-      console.error('Fetch messages exception:', err);
       clearTimeout(fetchTimeout);
       if (err.name !== 'AbortError') {
         toast.error('Failed to load messages');
@@ -161,7 +149,6 @@ function DiscussionTab({ tuitionId, isTeacher }) {
           filter: `tuition_id=eq.${tuitionId}`,
         },
         async (payload) => {
-          console.log('Realtime new message:', payload.new);
 
           // Fetch sender profile for the new message
           const { data: senderData, error: senderError } = await supabase
@@ -171,7 +158,6 @@ function DiscussionTab({ tuitionId, isTeacher }) {
             .maybeSingle();
 
           if (senderError) {
-            console.error('Fetch sender error:', senderError);
           }
 
           const fullName = senderData?.full_name?.trim();
@@ -220,7 +206,6 @@ function DiscussionTab({ tuitionId, isTeacher }) {
         });
 
       if (error) {
-        console.error('Error sending message:', error);
         toast.error('Failed to send message');
         setSending(false);
         return;
@@ -230,7 +215,6 @@ function DiscussionTab({ tuitionId, isTeacher }) {
       setNewMessage('');
       inputRef.current?.focus();
     } catch (err) {
-      console.error('Send message exception:', err);
       toast.error('Failed to send message');
     } finally {
       setSending(false);

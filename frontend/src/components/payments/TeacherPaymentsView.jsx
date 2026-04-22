@@ -86,11 +86,9 @@ function TeacherPaymentsView() {
     setLoading(true);
     try {
       const { data: { user } } = await supabase.auth.getUser();
-      console.log('[DEBUG] Current user ID:', user?.id);
       if (!user) return;
 
       // Step 1: Get all tuitions where user is a teacher (via created_by OR via tuition_members)
-      console.log('[DEBUG] Fetching tuitions for user:', user.id);
 
       // Get tuitions created by user
       const { data: createdTuitions, error: createdError } = await supabase
@@ -100,10 +98,8 @@ function TeacherPaymentsView() {
         .order('created_at', { ascending: false });
 
       if (createdError) {
-        console.log('[DEBUG] Error fetching created tuitions:', createdError);
         throw createdError;
       }
-      console.log('[DEBUG] Tuitions created by user:', createdTuitions?.length || 0, createdTuitions);
 
       // Get tuitions where user is a member with teacher role
       const { data: memberTuitions, error: memberError } = await supabase
@@ -113,17 +109,14 @@ function TeacherPaymentsView() {
         .eq('role_in_tuition', 'teacher');
 
       if (memberError) {
-        console.log('[DEBUG] Error fetching member tuitions:', memberError);
         throw memberError;
       }
-      console.log('[DEBUG] Tuitions where user is teacher member:', memberTuitions?.length || 0, memberTuitions);
 
       // Combine all tuition IDs
       const tuitionIdsFromCreated = createdTuitions?.map((t) => t.id) || [];
       const tuitionIdsFromMember = memberTuitions?.map((m) => m.tuition_id) || [];
       const allTuitionIds = [...new Set([...tuitionIdsFromCreated, ...tuitionIdsFromMember])];
 
-      console.log('[DEBUG] All tuition IDs:', allTuitionIds);
 
       // Fetch full tuition data for all unique IDs
       let allTuitionsData = [];
@@ -138,12 +131,10 @@ function TeacherPaymentsView() {
         allTuitionsData = fullTuitions || [];
       }
 
-      console.log('[DEBUG] Combined tuitions:', allTuitionsData?.length || 0, allTuitionsData);
       setTuitions(allTuitionsData);
 
       // Step 2: Fetch all students across all tuitions
       if (allTuitionIds.length > 0) {
-        console.log('[DEBUG] Fetching students for tuition IDs:', allTuitionIds);
 
         const { data: membersData, error: membersError } = await supabase
           .from('tuition_members')
@@ -152,15 +143,12 @@ function TeacherPaymentsView() {
           .eq('role_in_tuition', 'student');
 
         if (membersError) {
-          console.log('[DEBUG] Error fetching members:', membersError);
           throw membersError;
         }
 
-        console.log('[DEBUG] tuition_members query result:', membersData?.length || 0, membersData);
 
         if (membersData && membersData.length > 0) {
           const userIds = [...new Set(membersData.map((m) => m.user_id))];
-          console.log('[DEBUG] Unique student user IDs:', userIds);
 
           // Get profiles for all students
           const { data: profilesData, error: profilesError } = await supabase
@@ -169,11 +157,9 @@ function TeacherPaymentsView() {
             .in('id', userIds);
 
           if (profilesError) {
-            console.log('[DEBUG] Error fetching profiles:', profilesError);
             throw profilesError;
           }
 
-          console.log('[DEBUG] Profiles fetched:', profilesData?.length || 0, profilesData);
 
           const profileMap = {};
           profilesData?.forEach((p) => {
@@ -194,24 +180,20 @@ function TeacherPaymentsView() {
             grade: tuitionMap[m.tuition_id]?.grade || '',
           }));
 
-          console.log('[DEBUG] Final students list:', studentsList?.length || 0, studentsList);
           setAllStudents(studentsList);
           // Initialize filtered students with all students
           setFilteredStudents(studentsList);
 
           // Step 3: Fetch all student fees (will be empty if none set, that's ok)
-          console.log('[DEBUG] Fetching student_fees for tuition IDs:', allTuitionIds);
           const { data: feesData, error: feesError } = await supabase
             .from('student_fees')
             .select('student_id, tuition_id, fee_amount, due_day')
             .in('tuition_id', allTuitionIds);
 
           if (feesError) {
-            console.log('[DEBUG] Error fetching fees:', feesError);
             throw feesError;
           }
 
-          console.log('[DEBUG] student_fees result:', feesData?.length || 0, feesData);
 
           const feesMap = {};
           feesData?.forEach((f) => {
@@ -221,7 +203,6 @@ function TeacherPaymentsView() {
           setStudentFees(feesMap);
 
           // Step 4: Fetch all payment records for current month (will be empty if none, that's ok)
-          console.log('[DEBUG] Fetching fees_payments for month:', currentMonth, 'year:', currentYear);
           const { data: paymentsData, error: paymentsError } = await supabase
             .from('fees_payments')
             .select('*')
@@ -230,11 +211,9 @@ function TeacherPaymentsView() {
             .eq('year', currentYear);
 
           if (paymentsError) {
-            console.log('[DEBUG] Error fetching payments:', paymentsError);
             throw paymentsError;
           }
 
-          console.log('[DEBUG] fees_payments result:', paymentsData?.length || 0, paymentsData);
 
           const paymentMap = {};
           paymentsData?.forEach((p) => {
@@ -243,11 +222,9 @@ function TeacherPaymentsView() {
           });
           setPayments(paymentMap);
         } else {
-          console.log('[DEBUG] No students found in tuition_members');
           setAllStudents([]);
         }
       } else {
-        console.log('[DEBUG] No tuition IDs found, skipping student fetch');
       }
 
       // Fetch teacher payment details
@@ -267,7 +244,6 @@ function TeacherPaymentsView() {
         setQrCodeUrl(teacherPaymentData.qr_code_url || '');
       }
     } catch (err) {
-      console.log('[DEBUG] Error in fetchTeacherData:', err);
       handleError(err, 'Failed to fetch data');
     } finally {
       setLoading(false);

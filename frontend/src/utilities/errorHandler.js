@@ -8,7 +8,6 @@ import toast from 'react-hot-toast';
  */
 export const handleError = (error, fallbackMessage = 'An error occurred') => {
   // Log full error for debugging
-  console.error('Error details:', error);
 
   let userMessage;
 

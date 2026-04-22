@@ -108,7 +108,6 @@ function FeesTab({ tuitionId, isTeacher }) {
 
   const fetchStudents = async () => {
     try {
-      console.log('[DEBUG FeesTab] Fetching students for tuition:', tuitionId);
 
       // Get students in this tuition
       const { data: membersData, error: membersError } = await supabase
@@ -117,13 +116,11 @@ function FeesTab({ tuitionId, isTeacher }) {
         .eq('tuition_id', tuitionId)
         .eq('role_in_tuition', 'student');
 
-      console.log('[DEBUG FeesTab] tuition_members result:', membersData?.length || 0, membersData, 'Error:', membersError);
 
       if (membersError) throw membersError;
 
       if (membersData && membersData.length > 0) {
         const userIds = membersData.map((m) => m.user_id);
-        console.log('[DEBUG FeesTab] Student user IDs:', userIds);
 
         // Get profiles
         const { data: profilesData, error: profilesError } = await supabase
@@ -131,7 +128,6 @@ function FeesTab({ tuitionId, isTeacher }) {
           .select('id, full_name')
           .in('id', userIds);
 
-        console.log('[DEBUG FeesTab] profiles result:', profilesData?.length || 0, profilesData, 'Error:', profilesError);
 
         if (profilesError) throw profilesError;
 
@@ -146,7 +142,6 @@ function FeesTab({ tuitionId, isTeacher }) {
           joined_at: m.created_at,
         }));
 
-        console.log('[DEBUG FeesTab] Final students list:', studentsList);
         setStudents(studentsList);
 
         // Get individual fee settings
@@ -155,7 +150,6 @@ function FeesTab({ tuitionId, isTeacher }) {
           .select('student_id, fee_amount, due_day')
           .eq('tuition_id', tuitionId);
 
-        console.log('[DEBUG FeesTab] student_fees result:', feesData?.length || 0, feesData, 'Error:', feesError);
 
         if (feesError) throw feesError;
 
@@ -190,7 +184,6 @@ function FeesTab({ tuitionId, isTeacher }) {
 
   const fetchStudentFeeInfo = async (studentId) => {
     try {
-      console.log('[DEBUG FeesTab] Fetching fee info for student:', studentId);
 
       // Get student's fee settings for this tuition
       const { data: feeData, error: feeError } = await supabase
@@ -200,7 +193,6 @@ function FeesTab({ tuitionId, isTeacher }) {
         .eq('student_id', studentId)
         .maybeSingle();
 
-      console.log('[DEBUG FeesTab] student_fees result:', feeData, 'Error:', feeError);
 
       if (feeError && feeError.code !== 'PGRST116') throw feeError;
 
@@ -216,7 +208,6 @@ function FeesTab({ tuitionId, isTeacher }) {
         .eq('year', currentYear)
         .maybeSingle();
 
-      console.log('[DEBUG FeesTab] fees_payments result:', paymentData, 'Error:', paymentError);
 
       if (paymentError && paymentError.code !== 'PGRST116') throw paymentError;
 

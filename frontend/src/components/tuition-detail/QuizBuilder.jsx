@@ -202,7 +202,6 @@ export default function QuizBuilder({ tuitionId, onQuizCreated, onCancel }) {
         onQuizCreated(quizData);
       }
     } catch (err) {
-      console.error('Error creating quiz:', err);
       setError(err.message || 'Failed to create quiz. Please try again.');
     } finally {
       setSaving(false);

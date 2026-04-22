@@ -80,7 +80,6 @@ export default function JoinTuitionModal({ isOpen, onClose, onSuccess }) {
         });
 
       if (feeError) {
-        console.error('Error creating student fee record:', feeError);
       }
 
       toast.success('Joined tuition successfully');
@@ -88,7 +87,6 @@ export default function JoinTuitionModal({ isOpen, onClose, onSuccess }) {
       onSuccess();
       onClose();
     } catch (err) {
-      console.error('Join tuition error:', err);
       toast.error('Failed to join tuition');
     } finally {
       setLoading(false);

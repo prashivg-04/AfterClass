@@ -16,7 +16,6 @@ async function fetchRole(userId) {
       .maybeSingle();
     return data?.role || null;
   } catch (error) {
-    console.error('Error fetching role:', error);
     return null;
   }
 }
@@ -54,7 +53,6 @@ export function AuthProvider({ children }) {
           setLoading(false);
         }
       } catch (error) {
-        console.error('Error initializing session:', error);
         if (isActive) {
           setLoading(false);
         }
@@ -67,7 +65,6 @@ export function AuthProvider({ children }) {
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
       if (!isActive) return;
 
-      console.log('Auth state changed:', event, session ? 'has session' : 'no session');
 
       if (session) {
         dispatch(setSession(session));

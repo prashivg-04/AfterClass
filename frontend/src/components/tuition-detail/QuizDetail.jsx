@@ -76,7 +76,6 @@ export default function QuizDetail({ quiz, onBack, isTeacher = false }) {
           }
         }
       } catch (err) {
-        console.error('Error fetching quiz:', err);
         setError('Failed to load quiz. Please try again.');
       } finally {
         setLoading(false);

@@ -80,7 +80,6 @@ export default function QuizAnalytics({ quiz, questions, onBack }) {
 
       setLoading(false);
     } catch (err) {
-      console.error('Error fetching analytics data:', err);
       setError('Failed to load. Please try again later.');
       setLoading(false);
     } finally {

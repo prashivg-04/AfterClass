@@ -36,7 +36,6 @@ function Profile() {
 
             setProfileData(data);
         } catch (err) {
-            console.error('Error fetching profile:', err);
             toast.error('Failed to load profile');
         } finally {
             setLoading(false);

@@ -35,7 +35,6 @@ function ResourcesTab({ tuitionId, isTeacher }) {
 
   const fetchResources = async () => {
     setLoading(true);
-    console.log('Fetching resources for tuitionId:', tuitionId, 'type:', typeof tuitionId);
 
     const { data, error } = await supabase
       .from('resources')
@@ -45,10 +44,8 @@ function ResourcesTab({ tuitionId, isTeacher }) {
       .order('created_at', { ascending: false });
 
     if (error) {
-      console.error('Error fetching resources:', error);
       toast.error(`Failed to load resources: ${error.message}`);
     } else {
-      console.log('Resources fetched:', data);
       // Fetch user names separately
       const userIds = [...new Set(data?.map(r => r.uploaded_by).filter(Boolean))];
       if (userIds.length > 0) {
@@ -134,7 +131,6 @@ function ResourcesTab({ tuitionId, isTeacher }) {
         });
 
       if (uploadError) {
-        console.error('Error uploading file:', uploadError);
         toast.error(`Failed to upload file: ${uploadError.message}`);
         setUploading(false);
         return;
@@ -151,7 +147,6 @@ function ResourcesTab({ tuitionId, isTeacher }) {
         });
 
       if (dbError) {
-        console.error('Error saving resource metadata:', dbError);
         // Try to delete the uploaded file if DB insert fails
         await supabase.storage.from('resources').remove([filePath]);
         toast.error('Failed to save resource metadata');
@@ -162,7 +157,6 @@ function ResourcesTab({ tuitionId, isTeacher }) {
       toast.success('Resource uploaded successfully');
       fetchResources();
     } catch (error) {
-      console.error('Error uploading resource:', error);
       toast.error('Failed to upload resource');
     }
 
@@ -192,7 +186,6 @@ function ResourcesTab({ tuitionId, isTeacher }) {
         .remove([resource.file_path]);
 
       if (storageError) {
-        console.error('Error deleting file from storage:', storageError);
         // Continue to delete from DB anyway
       }
 
@@ -203,7 +196,6 @@ function ResourcesTab({ tuitionId, isTeacher }) {
         .eq('id', resource.id);
 
       if (dbError) {
-        console.error('Error deleting resource from database:', dbError);
         toast.error('Failed to delete resource');
         setDeletingId(null);
         return;
@@ -212,7 +204,6 @@ function ResourcesTab({ tuitionId, isTeacher }) {
       toast.success('Resource deleted');
       setResources(resources.filter(r => r.id !== resource.id));
     } catch (error) {
-      console.error('Error deleting resource:', error);
       toast.error('Failed to delete resource');
     }
 

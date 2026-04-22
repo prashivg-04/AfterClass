@@ -85,7 +85,6 @@ export default function Login() {
         .maybeSingle();
 
       if (profileError) {
-        console.error('Profile fetch error:', profileError);
       }
 
       // If profile exists with a role, go to dashboard

@@ -55,7 +55,6 @@ function StudentDashboard() {
         .eq('role_in_tuition', 'student');
 
       if (error) {
-        console.error('Error fetching tuition_members:', error);
       }
 
       if (!data || data.length === 0) {
@@ -129,7 +128,6 @@ function StudentDashboard() {
       await fetchKpiData(currentUserId, tuitions);
       await fetchAnalytics(currentUserId, tuitions);
     } catch (err) {
-      console.error('fetchDataForUser error:', err);
       setKpiLoading(false);
       setAnalyticsLoading(false);
     }
@@ -189,7 +187,6 @@ function StudentDashboard() {
 
       setKpiData({ attendancePercentage, classesAttended, quizzesAttempted });
     } catch (error) {
-      console.error('KPI data fetch error:', error);
       handleError(error, 'Failed to load dashboard statistics');
       setKpiData({ attendancePercentage: '--', classesAttended: '--', quizzesAttempted: '--' });
     } finally {
@@ -273,7 +270,6 @@ function StudentDashboard() {
         recentActivity,
       });
     } catch (err) {
-      console.error('Error fetching analytics:', err);
     } finally {
       setAnalyticsLoading(false);
     }
@@ -347,7 +343,6 @@ function StudentDashboard() {
       activities.sort((a, b) => new Date(b.time) - new Date(a.time));
       return activities.slice(0, 6);
     } catch (err) {
-      console.error('Error fetching student activity:', err);
       return [];
     }
   };

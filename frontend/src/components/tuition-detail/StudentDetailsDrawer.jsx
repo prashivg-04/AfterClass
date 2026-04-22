@@ -112,7 +112,6 @@ export default function StudentDetailsDrawer({ student, tuitionId, onClose }) {
       setIsEditingFee(false); // Close edit mode
       fetchStudentFeeSettings();
     } catch (err) {
-      console.error('Error saving fee settings:', err);
       toast.error('Failed to save fee settings');
     } finally {
       setSaving(false);
@@ -251,7 +250,6 @@ export default function StudentDetailsDrawer({ student, tuitionId, onClose }) {
         announcementsViewed: 0,
       });
     } catch (error) {
-      console.error('Error fetching student stats:', error);
     } finally {
       setLoading(false);
     }

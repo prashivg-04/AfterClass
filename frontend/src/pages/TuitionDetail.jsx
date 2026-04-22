@@ -275,7 +275,6 @@ function TuitionDetail({ role = 'Teacher' }) {
             averageQuizScore,
           });
         } catch (error) {
-          console.error('KPI calculation error:', error);
           setStudentKpiData({
             attendancePercentage: 0,
             classesAttended: 0,
@@ -345,7 +344,6 @@ function TuitionDetail({ role = 'Teacher' }) {
         setCopied(true);
         setTimeout(() => setCopied(false), 2000); // Reset copied state after 2 seconds
       }).catch(err => {
-        console.error('Failed to copy join code: ', err);
       });
     }
   };

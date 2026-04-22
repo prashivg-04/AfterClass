@@ -156,7 +156,6 @@ export default function QuizAttempt({ quiz, questions, onBack, onComplete }) {
         onComplete(completeAttempt);
       }
     } catch (err) {
-      console.error('Error submitting quiz:', err);
       alert('Failed to submit quiz. Please try again.');
     } finally {
       setSubmitting(false);

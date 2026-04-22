@@ -45,7 +45,6 @@ export default function QuizzesTab({ tuitionId, isTeacher = false }) {
         }
       }
     } catch (err) {
-      console.error('Error fetching quizzes:', err);
     } finally {
       setLoading(false);
     }
