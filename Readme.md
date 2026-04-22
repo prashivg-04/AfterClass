@@ -1,56 +1,16 @@
-# AfterClass
+# React + Vite
 
-AfterClass is a SaaS platform designed to act as the digital extension of offline tuition centers.
+This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
 
-It connects teachers and students throughout the academic year by maintaining learning continuity outside the classroom.
+Currently, two official plugins are available:
 
-## Core Idea
+- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) (or [oxc](https://oxc.rs) when used in [rolldown-vite](https://vite.dev/guide/rolldown)) for Fast Refresh
+- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
 
-Teacher teaches offline → logs topics → quizzes and revision material are created → students practice at home → performance is tracked and fed back to teachers.
+## React Compiler
 
-AfterClass becomes the third pillar between teachers and students.
+The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
 
-## Main Roles
+## Expanding the ESLint configuration
 
-### Teacher
-- Create and manage tuition spaces / batches
-- Log topics taught in class
-- Generate and publish quizzes
-- Record offline test marks
-- Monitor student progress and performance
-
-### Student
-- Join multiple tuition spaces
-- Attempt quizzes and practice exercises
-- Access revision cards
-- Track personal progress across tuitions
-
-## Core Concepts
-
-- Tuition spaces (shared workspace)
-- Personal dashboards (teacher & student)
-- Continuous assessments
-- Academic-year learning workflow
-- Hybrid offline + online learning
-
-## Tech Stack
-
-- Frontend: React
-- UI: shadcn/ui (core), Magic UI / Aceternity (polish)
-- Backend & Database: Supabase (PostgreSQL + Auth)
-- AI-assisted UI generation: v0
-- AI features (planned): quiz generation and revision support
-
-## Current Goal (MVP)
-
-Build the main workflow:
-
-1. Teacher creates tuition space
-2. Students join tuition
-3. Teacher logs topic and publishes quiz
-4. Students attempt quiz
-5. Results are tracked and visible
-
-## Long-Term Vision
-
-AfterClass aims to become a daily academic workspace used by both teachers and students across the full academic year.
+If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and [`typescript-eslint`](https://typescript-eslint.io) in your project.
