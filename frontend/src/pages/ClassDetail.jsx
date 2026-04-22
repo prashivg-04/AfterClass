@@ -29,7 +29,6 @@ function ClassDetail({ role = 'Teacher' }) {
 
   useEffect(() => {
     const fetchData = async () => {
-      // Get current user
       const { data: { user } } = await supabase.auth.getUser();
       setCurrentUser(user);
       const { data: classData } = await supabase
@@ -40,7 +39,6 @@ function ClassDetail({ role = 'Teacher' }) {
 
       setCls(classData);
 
-      // Fetch students in this tuition
       const { data: membersData } = await supabase
         .from('tuition_members')
         .select('user_id')
@@ -50,7 +48,6 @@ function ClassDetail({ role = 'Teacher' }) {
       if (membersData && membersData.length > 0) {
         const userIds = membersData.map(m => m.user_id);
 
-        // Get student profiles
         const { data: profilesData } = await supabase
           .from('profiles')
           .select('id, full_name')
@@ -70,7 +67,6 @@ function ClassDetail({ role = 'Teacher' }) {
 
         setStudents(studentsWithNames);
 
-        // Fetch existing attendance
         const { data: attendanceData } = await supabase
           .from('class_attendance')
           .select('*')
@@ -94,19 +90,13 @@ function ClassDetail({ role = 'Teacher' }) {
     fetchData();
   }, [tuitionId, classId]);
 
-  // Check if all students have attendance marked (for teacher)
   const hasAttendanceSubmitted = isTeacher && students.length > 0 && students.every(s => lockedAttendance[s.id]);
-
-  // Get current student's attendance (for student view)
   const myAttendance = !isTeacher ? attendance[currentUser?.id] : null;
-
-  // Calculate attendance summary
   const presentCount = (students || []).filter(s => attendance[s.id] === 'present').length;
   const totalCount = (students || []).length;
   const attendanceSummary = totalCount > 0 ? `${presentCount} / ${totalCount} present` : null;
 
   const openAttendanceModal = () => {
-    // Initialize pending attendance with existing locked values
     const initialPending = {};
     students.forEach(s => {
       if (lockedAttendance[s.id]) {
@@ -123,8 +113,6 @@ function ClassDetail({ role = 'Teacher' }) {
 
   const submitAttendance = async () => {
     setSaving(true);
-
-    // Prepare attendance records for all students
     const attendanceRecords = students.map(student => ({
       class_id: classId,
       student_id: student.id,
@@ -134,12 +122,9 @@ function ClassDetail({ role = 'Teacher' }) {
 
     const { error } = await supabase
       .from('class_attendance')
-      .upsert(attendanceRecords, {
-        onConflict: 'class_id,student_id'
-      });
+      .upsert(attendanceRecords, { onConflict: 'class_id,student_id' });
 
     if (!error) {
-      // Update local state
       const newAttendance = {};
       const newLocked = {};
       students.forEach(s => {
@@ -157,7 +142,6 @@ function ClassDetail({ role = 'Teacher' }) {
     navigate(`/dashboard/${role.toLowerCase()}/tuition/${tuitionId}`);
   };
 
-  // Render tab content based on active tab
   const renderTabContent = () => {
     switch (activeTab) {
       case 'overview':
@@ -167,6 +151,8 @@ function ClassDetail({ role = 'Teacher' }) {
             attendanceSummary={attendanceSummary}
             hasAttendanceSubmitted={hasAttendanceSubmitted}
             isTeacher={isTeacher}
+            presentCount={presentCount}
+            totalCount={totalCount}
           />
         );
       case 'attendance':
@@ -190,6 +176,8 @@ function ClassDetail({ role = 'Teacher' }) {
             attendanceSummary={attendanceSummary}
             hasAttendanceSubmitted={hasAttendanceSubmitted}
             isTeacher={isTeacher}
+            presentCount={presentCount}
+            totalCount={totalCount}
           />
         );
     }
@@ -199,7 +187,9 @@ function ClassDetail({ role = 'Teacher' }) {
     return (
       <DashboardLayout role={role}>
         <div className="flex items-center justify-center h-64">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+          <div className="w-12 h-12 bg-indigo-100 rounded-2xl flex items-center justify-center animate-pulse">
+            <div className="w-6 h-6 border-4 border-indigo-600 border-t-transparent rounded-full animate-spin"></div>
+          </div>
         </div>
       </DashboardLayout>
     );
@@ -208,9 +198,9 @@ function ClassDetail({ role = 'Teacher' }) {
   if (!cls) {
     return (
       <DashboardLayout role={role}>
-        <div className="text-center py-12">
-          <p className="text-slate-600">Class not found.</p>
-          <button onClick={handleBack} className="mt-4 text-blue-600 hover:underline">
+        <div className="bg-white rounded-4xl p-16 text-center border border-slate-200/80 shadow-sm">
+          <p className="text-slate-600 font-medium mb-4">Class not found.</p>
+          <button onClick={handleBack} className="px-5 py-2.5 bg-slate-900 text-white font-bold rounded-2xl hover:bg-slate-700 transition-colors">
             Back to Classes
           </button>
         </div>
@@ -220,58 +210,60 @@ function ClassDetail({ role = 'Teacher' }) {
 
   return (
     <DashboardLayout role={role}>
-      <div className="space-y-6">
-        {/* Header Section */}
-        <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-6 sm:p-8 relative overflow-hidden">
-          {/* Decorative background element */}
-          <div className="absolute top-0 right-0 w-64 h-64 bg-linear-to-br from-blue-50 to-indigo-50 rounded-full blur-3xl -mr-20 -mt-20 opacity-70 pointer-events-none"></div>
+      <div className="space-y-6 lg:space-y-8">
 
-          <div className="relative flex flex-col sm:flex-row sm:items-start gap-5">
-            <button
-              onClick={handleBack}
-              className="shrink-0 w-10 h-10 flex items-center justify-center bg-slate-50 hover:bg-slate-100 text-slate-600 rounded-full transition-colors self-start border border-slate-200"
-              aria-label="Back to classes"
-            >
-              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" />
-              </svg>
-            </button>
+        {/* ── Dark Hero Header ── */}
+        <div className="bg-slate-900 rounded-4xl p-8 md:p-10 border border-slate-800 shadow-2xl relative overflow-hidden group">
+          <div className="absolute top-0 right-0 w-80 h-80 bg-indigo-500/20 rounded-full blur-[80px] opacity-0 group-hover:opacity-100 transition-opacity duration-1000 -translate-y-1/2 translate-x-1/3 pointer-events-none"></div>
+          <div className="absolute bottom-0 left-0 w-64 h-64 bg-purple-500/15 rounded-full blur-[60px] opacity-0 group-hover:opacity-100 transition-opacity duration-1000 translate-y-1/2 -translate-x-1/3 pointer-events-none"></div>
 
-            <div className="flex-1">
-              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-3">
-                <h1 className="text-2xl sm:text-3xl font-bold text-slate-900 tracking-tight">{cls.name}</h1>
-
-                {cls.class_date && (
-                  <div className="flex items-center gap-2 text-sm font-medium px-3 py-1.5 bg-blue-50 text-blue-700 rounded-lg border border-blue-100/50 self-start sm:self-auto">
-                    <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                    </svg>
-                    {new Date(cls.class_date).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })}
-                  </div>
-                )}
+          <div className="relative z-10">
+            <div className="flex items-start gap-4 mb-6">
+              <button
+                onClick={handleBack}
+                className="shrink-0 w-10 h-10 bg-white/10 hover:bg-white/20 text-white rounded-2xl flex items-center justify-center transition-colors border border-white/15 backdrop-blur-sm"
+                aria-label="Back"
+              >
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+                </svg>
+              </button>
+              <div className="flex-1">
+                <p className="text-xs font-bold tracking-widest uppercase text-indigo-400 mb-2">Class Session</p>
+                <h1 className="text-2xl md:text-3xl font-black text-white tracking-tight leading-tight">{cls.name}</h1>
               </div>
+              {cls.class_date && (
+                <div className="shrink-0 flex items-center gap-2 bg-white/10 backdrop-blur-sm px-4 py-2 rounded-2xl border border-white/15 text-sm font-bold text-white/90">
+                  <svg className="w-4 h-4 text-indigo-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                  </svg>
+                  {new Date(cls.class_date).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })}
+                </div>
+              )}
+            </div>
 
-              <div className="flex flex-wrap gap-2 mt-2">
-                {cls.topics && cls.topics.map(topic => (
-                  <span key={topic} className="px-3 py-1 bg-slate-100 text-slate-700 text-xs font-medium rounded-full border border-slate-200/60 shadow-sm">
+            {/* Topics */}
+            <div className="flex flex-wrap gap-2">
+              {cls.topics && cls.topics.length > 0 ? (
+                cls.topics.map(topic => (
+                  <span key={topic} className="px-3 py-1 bg-white/10 text-white/80 text-xs font-bold rounded-xl border border-white/15 backdrop-blur-sm">
                     {topic}
                   </span>
-                ))}
-                {(!cls.topics || cls.topics.length === 0) && (
-                  <span className="text-sm text-slate-500 italic">No topics specifically tagged</span>
-                )}
-              </div>
+                ))
+              ) : (
+                <span className="text-sm text-slate-500 italic">No topics tagged</span>
+              )}
             </div>
           </div>
         </div>
 
-        {/* Tabs */}
+        {/* ── Tabs ── */}
         <ClassDetailTabs activeTab={activeTab} onTabChange={setActiveTab} />
 
-        {/* Tab Content */}
+        {/* ── Tab Content ── */}
         {renderTabContent()}
 
-        {/* Attendance Modal */}
+        {/* ── Attendance Modal ── */}
         <AttendanceModal
           isOpen={showAttendanceModal}
           students={students}
