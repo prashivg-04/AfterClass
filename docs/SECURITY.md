@@ -72,6 +72,19 @@ This function bypasses the RLS check on `tuition_members` when called from withi
 
 ---
 
+## Storage Security
+
+AfterClass uses two Supabase Storage buckets, both set to private:
+
+| Bucket | Read | Write | Delete |
+|--------|------|-------|--------|
+| `RESOURCES` | Authenticated users only | Authenticated users | Uploader only |
+| `PAYMENT_QRS` | Authenticated users only | Owner teacher only | Owner teacher only |
+
+> Both buckets are **private** — files are not publicly accessible without authentication.
+
+---
+
 ## Frontend Security
 
 - The Supabase `anon` key is safe to expose on the frontend — it is restricted by RLS policies
