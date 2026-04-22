@@ -4,7 +4,7 @@ A tuition management platform that bridges the gap between offline teaching and 
 
 Teachers create tuition spaces, log classes, conduct quizzes, and track payments. Students join via a code, attempt quizzes, ask doubts, and manage their fees — all in one place.
 
-**Live Demo:** [afterclass.vercel.app](https://afterclass.vercel.app) <!-- replace with actual URL -->
+**Live Demo:** [afterclass.vercel.app](https://after-class-ashy.vercel.app/) <!-- replace with actual URL -->
 
 ---
 

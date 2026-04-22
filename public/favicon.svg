@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">
+  <!-- White background -->
+  <rect width="100" height="100" fill="white"/>
+
+  <!-- "A" - geometric triangle style matching logo -->
+  <g transform="translate(15, 15) skewX(-9)">
+    <path d="M0,70 L12,0 L24,0 L36,70 L28,70 L24,50 L12,50 L8,70 Z M15,42 L21,42 L18,22 Z" fill="black"/>
+  </g>
+
+  <!-- "C" - geometric style matching logo -->
+  <g transform="translate(52, 15) skewX(-9)" fill="black">
+    <path d="M32,12 Q24,0 12,0 Q0,0 0,35 Q0,70 12,70 Q24,70 32,58 L24,54 Q20,62 12,62 Q6,62 6,35 Q6,8 12,8 Q20,8 24,16 Z"/>
+  </g>
+</svg>
