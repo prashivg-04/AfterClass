@@ -7,28 +7,37 @@ yarn-error.log*
 pnpm-debug.log*
 lerna-debug.log*
 
+# Dependencies
 node_modules
+
+# Build output
 dist
 dist-ssr
-*.local
 
-# Environment variables - NEVER commit these
+# Environment variables
 .env
 .env.*
 !.env.example
 
-# Editor directories and files
+# Local files
+*.local
+.DS_Store
+**/.DS_Store
+
+# Project specific - not for repo
+database/
+.claude/
+context-claude/
+
+# Lock files (optional - remove this if you want to keep package-lock.json)
+package-lock.json
+
+# Editor
 .vscode/*
 !.vscode/extensions.json
 .idea
-.DS_Store
 *.suo
 *.ntvs*
 *.njsproj
 *.sln
 *.sw?
-
-.DS_Store
-**/.DS_Store
-
-database/
