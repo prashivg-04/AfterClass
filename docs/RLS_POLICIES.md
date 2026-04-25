@@ -182,6 +182,7 @@ Last updated: April 2026
 |--------|---------|-------------|
 | Teachers can insert payment details | INSERT | Teachers can add their own UPI/QR details |
 | Teachers can update payment details | UPDATE | Teachers can update their own payment details |
+| Students can view teacher payment details | SELECT | Students can view payment details of teachers in their enrolled tuitions |
 
 > Note: Student access to teacher payment details is handled via the `tuition_spaces` table which stores `upi_id` and `qr_code_url` directly.
 

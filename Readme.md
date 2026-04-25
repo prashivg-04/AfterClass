@@ -83,6 +83,7 @@ See [docs/ENVIRONMENT.md](docs/ENVIRONMENT.md) for environment variable details 
 | [SECURITY.md](docs/SECURITY.md) | RLS policies and security model |
 | [API_REFERENCE.md](docs/API_REFERENCE.md) | Database schema and query patterns |
 | [CONTRIBUTING.md](docs/CONTRIBUTING.md) | How to contribute |
+| [RLS_POLICIES.md](docs/RLS_POLICIES.md) | Complete list of all database RLS policies |
 
 ---
 
