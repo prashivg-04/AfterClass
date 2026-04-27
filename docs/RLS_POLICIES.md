@@ -25,6 +25,7 @@ Last updated: April 2026
 | Teachers can create tuitions | INSERT | Only the creating teacher can insert |
 | Teachers can update own tuitions | UPDATE | Only the creator can update |
 | Teachers can delete own tuitions | DELETE | Only the creator can delete |
+| Anyone can look up tuition by join code | SELECT | Any authenticated user can find a tuition using a join code |
 
 ---
 
@@ -176,9 +177,17 @@ Last updated: April 2026
 
 ---
 
-## teacher_payment_details
+## topics
 
 | Policy | Command | Description |
+|--------|---------|-------------|
+| Authenticated users can view topics | SELECT | Any logged in user can read the topics list |
+
+---
+
+## teacher_payment_details
+
+| Policy | Command | Description |  
 |--------|---------|-------------|
 | Teachers can insert payment details | INSERT | Teachers can add their own UPI/QR details |
 | Teachers can update payment details | UPDATE | Teachers can update their own payment details |

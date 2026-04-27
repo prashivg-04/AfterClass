@@ -379,6 +379,7 @@ function TuitionDetail({ role = 'Teacher' }) {
             setClasses={setClasses}
             tuitionId={tuitionId}
             isTeacher={isTeacher}
+            subject={tuition?.subject}
           />
         );
       case 'resources':

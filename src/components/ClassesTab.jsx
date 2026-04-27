@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -6,13 +6,213 @@ import toast from 'react-hot-toast';
 import { supabase } from '../lib/supabase';
 import { classSchema } from '../schemas/class.schema';
 
-const TOPIC_OPTIONS = ['Algebra', 'Trigonometry', 'Probability', 'Geometry', 'Statistics'];
 
-function ClassesTab({ classes, setClasses, tuitionId, isTeacher }) {
+const GRADE_ORDER = ['Class 9', 'Class 10', 'Class 11', 'Class 12', 'JEE', 'NEET'];
+
+function ClassesTab({ classes, setClasses, tuitionId, isTeacher, subject }) {
   const navigate = useNavigate();
   const [saving, setSaving] = useState(false);
   const [showModal, setShowModal] = useState(false);
   const [isTopicDropdownOpen, setIsTopicDropdownOpen] = useState(false);
+  const [topics, setTopics] = useState([]);
+  const [loadingTopics, setLoadingTopics] = useState(false);
+  const [selectedDate, setSelectedDate] = useState(new Date());
+  const [isDatePickerOpen, setIsDatePickerOpen] = useState(false);
+  const [currentMonth, setCurrentMonth] = useState(new Date());
+  const topicDropdownRef = useRef(null);
+  const datePickerRef = useRef(null);
+
+  // Helper functions for date formatting and manipulation
+  const formatDate = (date, formatStr) => {
+    const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+    const day = date.getDate();
+    const month = months[date.getMonth()];
+    const year = date.getFullYear();
+    return formatStr.replace('dd', String(day).padStart(2, '0')).replace('MMM', month).replace('yyyy', year).replace('YYYY', year);
+  };
+
+  const getDaysInMonth = (date) => {
+    const year = date.getFullYear();
+    const month = date.getMonth();
+    const firstDay = new Date(year, month, 1);
+    const lastDay = new Date(year, month + 1, 0);
+    const daysInMonth = lastDay.getDate();
+    const startingDay = firstDay.getDay();
+    return { daysInMonth, startingDay };
+  };
+
+  const renderCalendar = (pickerRef) => {
+    const { daysInMonth, startingDay } = getDaysInMonth(currentMonth);
+    const daysOfWeek = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+    const today = new Date();
+    const monthNames = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
+
+    const isToday = (day) => day === today.getDate() && currentMonth.getMonth() === today.getMonth() && currentMonth.getFullYear() === today.getFullYear();
+    const isSelected = (day) => day === selectedDate.getDate() && currentMonth.getMonth() === selectedDate.getMonth() && currentMonth.getFullYear() === selectedDate.getFullYear();
+
+    // Calculate position
+    let calendarStyle = { display: 'block' };
+    if (pickerRef?.current) {
+      const buttonRect = pickerRef.current.getBoundingClientRect();
+      const spaceBelow = window.innerHeight - buttonRect.bottom;
+      const spaceAbove = buttonRect.top;
+      const calendarHeight = 320; // approximate calendar height
+
+      if (spaceBelow < calendarHeight && spaceAbove > spaceBelow) {
+        // Not enough space below, but more space above - position above
+        calendarStyle = {
+          display: 'block',
+          bottom: window.innerHeight - buttonRect.top + 8 + 'px',
+          left: buttonRect.left + 'px'
+        };
+      } else {
+        // Position below
+        calendarStyle = {
+          display: 'block',
+          top: buttonRect.bottom + 8 + 'px',
+          left: buttonRect.left + 'px'
+        };
+      }
+    }
+
+    return (
+      <div className="fixed z-50 bg-white rounded-xl shadow-xl border border-slate-200 p-4 w-64" style={calendarStyle}>
+        {/* Month Navigation */}
+        <div className="flex items-center justify-between mb-4">
+          <button
+            type="button"
+            onClick={() => setCurrentMonth(new Date(currentMonth.getFullYear(), currentMonth.getMonth() - 1, 1))}
+            className="w-8 h-8 flex items-center justify-center rounded-lg hover:bg-slate-100 transition-colors"
+          >
+            <svg className="w-5 h-5 text-slate-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+            </svg>
+          </button>
+          <span className="text-sm font-semibold text-slate-900">
+            {monthNames[currentMonth.getMonth()]} {currentMonth.getFullYear()}
+          </span>
+          <button
+            type="button"
+            onClick={() => setCurrentMonth(new Date(currentMonth.getFullYear(), currentMonth.getMonth() + 1, 1))}
+            className="w-8 h-8 flex items-center justify-center rounded-lg hover:bg-slate-100 transition-colors"
+          >
+            <svg className="w-5 h-5 text-slate-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+            </svg>
+          </button>
+        </div>
+
+        {/* Days of Week Header */}
+        <div className="grid grid-cols-7 mb-2">
+          {daysOfWeek.map(day => (
+            <div key={day} className="text-center text-xs font-medium text-slate-500 py-1">
+              {day}
+            </div>
+          ))}
+        </div>
+
+        {/* Calendar Grid */}
+        <div className="grid grid-cols-7 gap-1">
+          {Array.from({ length: startingDay }).map((_, i) => (
+            <div key={`empty-${i}`} className="h-8" />
+          ))}
+          {Array.from({ length: daysInMonth }).map((_, i) => {
+            const day = i + 1;
+            const date = new Date(currentMonth.getFullYear(), currentMonth.getMonth(), day);
+            return (
+              <button
+                key={day}
+                type="button"
+                onClick={() => handleDateSelect(date)}
+                className={`h-8 w-8 flex items-center justify-center text-sm rounded-full transition-colors ${
+                  isSelected(day)
+                    ? 'bg-blue-600 text-white font-medium'
+                    : isToday(day)
+                      ? 'bg-slate-200 text-slate-900 font-medium hover:bg-slate-300'
+                      : 'text-slate-700 hover:bg-slate-100'
+                }`}
+              >
+                {day}
+              </button>
+            );
+          })}
+        </div>
+      </div>
+    );
+  };
+
+  // Close dropdown when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (topicDropdownRef.current && !topicDropdownRef.current.contains(event.target)) {
+        setIsTopicDropdownOpen(false);
+      }
+    };
+
+    if (isTopicDropdownOpen) {
+      document.addEventListener('mousedown', handleClickOutside);
+      return () => document.removeEventListener('mousedown', handleClickOutside);
+    }
+  }, [isTopicDropdownOpen]);
+
+  // Close date picker when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (datePickerRef.current && !datePickerRef.current.contains(event.target)) {
+        setIsDatePickerOpen(false);
+      }
+    };
+
+    if (isDatePickerOpen) {
+      document.addEventListener('mousedown', handleClickOutside);
+      return () => document.removeEventListener('mousedown', handleClickOutside);
+    }
+  }, [isDatePickerOpen]);
+
+  // Fetch topics from Supabase when modal opens and subject is available
+  useEffect(() => {
+    if (showModal && subject) {
+      fetchTopics();
+    }
+  }, [showModal, subject]);
+
+  const fetchTopics = async () => {
+    setLoadingTopics(true);
+    const { data, error } = await supabase
+      .from('topics')
+      .select('id, topic, grade')
+      .eq('subject', subject)
+      .order('grade')
+      .order('topic');
+
+    if (error) {
+      console.error('Failed to fetch topics:', error);
+      setLoadingTopics(false);
+      return;
+    }
+
+    // Group topics by grade
+    const grouped = {};
+    GRADE_ORDER.forEach(grade => {
+      grouped[grade] = [];
+    });
+
+    data.forEach(item => {
+      if (grouped[item.grade]) {
+        grouped[item.grade].push(item.topic);
+      }
+    });
+
+    // Remove grades with no topics
+    Object.keys(grouped).forEach(grade => {
+      if (grouped[grade].length === 0) {
+        delete grouped[grade];
+      }
+    });
+
+    setTopics(grouped);
+    setLoadingTopics(false);
+  };
 
   const {
     register,
@@ -46,14 +246,24 @@ function ClassesTab({ classes, setClasses, tuitionId, isTeacher }) {
     setValue('topics', selectedTopics.filter(t => t !== topicToRemove), { shouldValidate: true });
   };
 
+  const handleDateSelect = (date) => {
+    setSelectedDate(date);
+    setValue('classDate', date ? formatDate(date, 'yyyy-MM-dd') : '', { shouldValidate: true });
+    setIsDatePickerOpen(false);
+  };
+
   const resetForm = () => {
     reset({
       className: '',
       topics: [],
-      classDate: new Date().toISOString().split('T')[0],
+      classDate: formatDate(new Date(), 'yyyy-MM-dd'),
       summary: '',
     });
     setIsTopicDropdownOpen(false);
+    setIsDatePickerOpen(false);
+    setTopics([]);
+    setSelectedDate(new Date());
+    setCurrentMonth(new Date());
   };
 
   const handleCreateClass = async (data) => {
@@ -192,7 +402,7 @@ function ClassesTab({ classes, setClasses, tuitionId, isTeacher }) {
               </button>
             </div>
 
-            <form onSubmit={handleSubmit(handleCreateClass)} className="p-6 space-y-5" noValidate>
+            <form onSubmit={handleSubmit(handleCreateClass)} className="p-6 space-y-5 max-h-[70vh] overflow-y-auto" noValidate>
               <div>
                 <label className="block text-sm font-medium text-slate-700 mb-1.5">Class Title</label>
                 <input
@@ -241,8 +451,8 @@ function ClassesTab({ classes, setClasses, tuitionId, isTeacher }) {
                   </div>
                 )}
 
-                {/* Custom Dropdown */}
-                <div className="relative">
+                {/* Custom Dropdown with Grade Groups */}
+                <div className="relative" ref={topicDropdownRef}>
                   <button
                     type="button"
                     onClick={() => setIsTopicDropdownOpen(!isTopicDropdownOpen)}
@@ -255,21 +465,35 @@ function ClassesTab({ classes, setClasses, tuitionId, isTeacher }) {
                   </button>
 
                   {isTopicDropdownOpen && (
-                    <div className="absolute z-10 top-full left-0 right-0 mt-2 bg-white rounded-xl shadow-lg border border-slate-100 py-2 animate-in fade-in slide-in-from-top-2 duration-200 max-h-48 overflow-y-auto">
-                      {TOPIC_OPTIONS.filter(t => !selectedTopics.includes(t)).length === 0 ? (
-                        <div className="px-4 py-3 text-sm text-slate-500 text-center">All topics added</div>
+                    <div className="absolute z-10 top-full left-0 right-0 mt-2 bg-white rounded-xl shadow-lg border border-slate-100 py-2 animate-in fade-in slide-in-from-top-2 duration-200 max-h-64 overflow-y-auto">
+                      {loadingTopics ? (
+                        <div className="px-4 py-3 text-sm text-slate-500 text-center">Loading topics...</div>
+                      ) : Object.keys(topics).length === 0 ? (
+                        <div className="px-4 py-3 text-sm text-slate-500 text-center">No topics available</div>
                       ) : (
-                        TOPIC_OPTIONS.filter(t => !selectedTopics.includes(t)).map(topic => (
-                          <button
-                            key={topic}
-                            type="button"
-                            onClick={() => handleTopicToggle(topic)}
-                            className="w-full text-left px-4 py-2.5 text-sm text-slate-700 hover:bg-blue-50 hover:text-blue-700 transition-colors flex items-center justify-between group"
-                          >
-                            {topic}
-                            <span className="opacity-0 group-hover:opacity-100 text-blue-600 text-xs font-semibold">Add</span>
-                          </button>
-                        ))
+                        Object.entries(topics).map(([grade, gradeTopics]) => {
+                          const availableTopics = gradeTopics.filter(t => !selectedTopics.includes(t));
+                          if (availableTopics.length === 0) return null;
+
+                          return (
+                            <div key={grade}>
+                              <div className="px-4 py-1.5 text-xs font-semibold text-slate-400 uppercase tracking-wider bg-slate-50/50">
+                                {grade}
+                              </div>
+                              {availableTopics.map(topic => (
+                                <button
+                                  key={topic}
+                                  type="button"
+                                  onClick={() => handleTopicToggle(topic)}
+                                  className="w-full text-left px-4 py-2 text-sm text-slate-700 hover:bg-blue-50 hover:text-blue-700 transition-colors flex items-center justify-between group"
+                                >
+                                  {topic}
+                                  <span className="opacity-0 group-hover:opacity-100 text-blue-600 text-xs font-semibold">Add</span>
+                                </button>
+                              ))}
+                            </div>
+                          );
+                        })
                       )}
                     </div>
                   )}
@@ -287,15 +511,24 @@ function ClassesTab({ classes, setClasses, tuitionId, isTeacher }) {
               <div className="grid grid-cols-2 gap-4">
                 <div className="col-span-2">
                   <label className="block text-sm font-medium text-slate-700 mb-1.5">Date of Class</label>
-                  <input
-                    type="date"
-                    {...register('classDate')}
-                    className={`w-full px-4 py-2.5 bg-slate-50 border text-slate-900 rounded-xl focus:outline-none focus:ring-2 transition-all duration-200 text-sm ${errors.classDate
-                      ? 'border-red-300 focus:ring-red-500/20 focus:border-red-500 text-red-900'
-                      : 'border-slate-200 focus:ring-blue-500/20 focus:border-blue-500'
-                      }`}
-                    aria-invalid={errors.classDate ? "true" : "false"}
-                  />
+                  <div className="relative" ref={datePickerRef}>
+                    <button
+                      type="button"
+                      onClick={() => setIsDatePickerOpen(!isDatePickerOpen)}
+                      className={`w-full flex items-center justify-between px-4 py-2.5 bg-slate-50 border text-slate-900 rounded-xl focus:outline-none focus:ring-2 transition-all duration-200 text-sm ${errors.classDate
+                        ? 'border-red-300 focus:ring-red-500/20 focus:border-red-500 text-red-900'
+                        : 'border-slate-200 focus:ring-blue-500/20 focus:border-blue-500'
+                        }`}
+                      aria-invalid={errors.classDate ? "true" : "false"}
+                    >
+                      <span>{selectedDate ? formatDate(selectedDate, 'dd MMM yyyy') : 'Select date'}</span>
+                      <svg className="w-4 h-4 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                      </svg>
+                    </button>
+
+                    {isDatePickerOpen && renderCalendar(datePickerRef)}
+                  </div>
                   {errors.classDate && (
                     <p className="mt-1.5 text-sm text-red-500 font-medium animate-in slide-in-from-top-1 fade-in duration-200 flex items-center gap-1.5">
                       <svg className="w-4 h-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">

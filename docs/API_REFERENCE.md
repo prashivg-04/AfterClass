@@ -360,6 +360,24 @@ File uploads (notes, assignments, etc.) for tuitions and classes.
 
 ---
 
+### 18. topics
+
+Predefined topic list for class creation, organized by subject and grade.
+
+| Column | Type | Description |
+|--------|------|-------------|
+| `id` | uuid | Primary key |
+| `subject` | text | Subject name (e.g., "Mathematics", "Physics") |
+| `topic` | text | Topic name |
+| `grade` | text | Grade level (e.g., "Class 9", "Class 12", "JEE", "NEET") |
+
+**Constraints:**
+- No foreign keys — standalone reference table
+- Covers NCERT syllabus (Class 9-12) and JEE/NEET syllabus
+- 280+ topics across Mathematics, Physics, Chemistry, Biology
+
+---
+
 ## Key Relationships
 
 ```
@@ -547,6 +565,17 @@ const { data, error } = await supabase
   .single();
 ```
 
+### Fetching Topics by Subject
+
+```javascript
+const { data: topics } = await supabase
+  .from('topics')
+  .select('topic, grade')
+  .eq('subject', tuitionSubject)
+  .order('grade', { ascending: true })
+  .order('topic', { ascending: true });
+```
+
 ### Marking Attendance
 
 ```javascript
@@ -720,6 +749,7 @@ Row Level Security (RLS) policies control data access. For detailed security pol
 | `tuition_spaces` | Teachers can read/update their created tuitions; students can read enrolled tuitions |
 | `tuition_members` | Users can read their memberships only |
 | `classes` | Tuition members can read; teachers can create/update |
+| `topics` | Authenticated users can read all topics |
 | `class_attendance` | Teachers can mark; students can view their own |
 | `announcements` | Tuition teachers can create; all members can read |
 | `discussion_messages` | Tuition members can read/write |
