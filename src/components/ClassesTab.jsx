@@ -27,8 +27,9 @@ function ClassesTab({ classes, setClasses, tuitionId, isTeacher, subject }) {
     const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
     const day = date.getDate();
     const month = months[date.getMonth()];
+    const mm = String(date.getMonth() + 1).padStart(2, '0');
     const year = date.getFullYear();
-    return formatStr.replace('dd', String(day).padStart(2, '0')).replace('MMM', month).replace('yyyy', year).replace('YYYY', year);
+    return formatStr.replace('dd', String(day).padStart(2, '0')).replace('MMM', month).replace('MM', mm).replace('yyyy', year).replace('YYYY', year);
   };
 
   const getDaysInMonth = (date) => {
