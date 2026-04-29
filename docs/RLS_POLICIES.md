@@ -154,6 +154,9 @@ Last updated: April 2026
 | Students can view own payments | SELECT | Students can only see their own payment records |
 | Teachers can view tuition payments | SELECT | Teachers can see all payment records in their tuitions |
 | Teachers can manage payments | INSERT | Only teachers can create payment records |
+| Students can update own payment status | UPDATE | Students can update their own payment record to send a payment request |
+| Teachers can update payment status | UPDATE | Teachers can update payment status in their tuitions |
+| Teachers can delete payment records | DELETE | Teachers can delete payment records in their tuitions |
 
 ---
 
@@ -164,6 +167,8 @@ Last updated: April 2026
 | Students can view own fee details | SELECT | Students can only see their own fee configuration |
 | Teachers can view tuition fee details | SELECT | Teachers can see all fee details in their tuitions |
 | Teachers can update student fees | UPDATE | Only teachers can update fee amounts and due dates |
+| Teachers can insert student fees | INSERT | Teachers can create fee records for students in their tuitions |
+| Teachers can delete student fees | DELETE | Teachers can delete fee records in their tuitions |
 
 ---
 
