@@ -80,6 +80,8 @@ export default function JoinTuitionModal({ isOpen, onClose, onSuccess }) {
         });
 
       if (feeError) {
+        toast.error('Joined tuition but fee record could not be created. Please contact your teacher.');
+        return;
       }
 
       toast.success('Joined tuition successfully');

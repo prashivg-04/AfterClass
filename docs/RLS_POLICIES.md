@@ -167,7 +167,8 @@ Last updated: April 2026
 | Students can view own fee details | SELECT | Students can only see their own fee configuration |
 | Teachers can view tuition fee details | SELECT | Teachers can see all fee details in their tuitions |
 | Teachers can update student fees | UPDATE | Only teachers can update fee amounts and due dates |
-| Teachers can insert student fees | INSERT | Teachers can create fee records for students in their tuitions |
+| Students can insert own fee record | INSERT | Students can create their own fee record when joining a tuition |
+| Teachers can insert student fees | INSERT | Teachers can insert fee records for students in their tuitions |
 | Teachers can delete student fees | DELETE | Teachers can delete fee records in their tuitions |
 
 ---
