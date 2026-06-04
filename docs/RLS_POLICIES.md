@@ -14,6 +14,7 @@ Last updated: April 2026
 | Users can update own profile | UPDATE | Users can only update their own profile |
 | Tuition members can view each other's profiles | SELECT | Users who share a tuition can see each other's profiles |
 | Students can view their tuition teacher profile | SELECT | Students can view the profile of teachers whose tuitions they are enrolled in |
+| Users can insert own profile | INSERT | Users can create their own profile row on signup |
 
 ---
 
